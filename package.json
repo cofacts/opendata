@@ -1,0 +1,43 @@
+{
+  "name": "cofacts-opendata",
+  "version": "1.0.0",
+  "description": "Open data for cofacts",
+  "main": "dumpOpenData.js",
+  "scripts": {
+    "start": "babel-node dumpOpenData",
+    "lint": "eslint .",
+    "lint:fix": "eslint --fix .",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/cofacts/opendata.git"
+  },
+  "keywords": [
+    "open-data",
+    "fact-checking",
+    "crowd-sourcing"
+  ],
+  "author": "",
+  "license": "SEE LICENSE IN README.md",
+  "bugs": {
+    "url": "https://github.com/cofacts/opendata/issues"
+  },
+  "homepage": "https://github.com/cofacts/opendata#readme",
+  "dependencies": {
+    "babel-cli": "^6.26.0",
+    "babel-preset-env": "^1.6.1",
+    "babel-preset-stage-3": "^6.24.1",
+    "csv-stringify": "^3.0.0",
+    "elasticsearch": "^14.2.2",
+    "jszip": "^3.1.5"
+  },
+  "devDependencies": {
+    "babel-eslint": "^8.2.2",
+    "eslint": "^4.18.2",
+    "eslint-config-prettier": "^2.9.0",
+    "eslint-plugin-import": "^2.9.0",
+    "eslint-plugin-prettier": "^2.6.0",
+    "prettier": "^1.8.2"
+  }
+}
