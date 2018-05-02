@@ -4,7 +4,7 @@ import elasticsearch from 'elasticsearch';
 import csvStringify from 'csv-stringify';
 import JSZip from 'jszip';
 
-const ELASTICSEARCH_URL = 'http://localhost:62222';
+const ELASTICSEARCH_URL = 'http://localhost:62223';
 const OUTPUT_DIR = './data';
 
 const client = new elasticsearch.Client({
@@ -217,7 +217,7 @@ function writeFile(fileName) {
         compressionOptions: { level: 8 },
       })
       .pipe(fs.createWriteStream(`${OUTPUT_DIR}/${fileName}.zip`))
-      .on('finish', () => console.log(`${fileName} written.`));
+      .on('finish', () => console.log(`${fileName}.zip written.`));
   };
 }
 

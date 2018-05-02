@@ -100,6 +100,28 @@ The feedback is actually submitted toward an `article_reply`, the connection bet
 | `score`        | Integer     | `1`: Useful. `-1`: Not useful. |
 | `createdAt` | ISO Time string     | When the feedback is submitted |
 
+## Generating opendata files
+
+We generate the opendata files by backing up production DB to local machine, then run this script on local machine.
+
+According to [rumors-deploy](https://github.com/cofacts/rumors-deploy/), the production DB raw data
+should be available in `rumors-deploy/volumes/db-production`. (Staging is in `db-staging` instead).
+
+To backup production DB, Just tar the `rumors-deploy/volumes/db-production`, download to local machine, extract the tar file and put it in `esdata` directory of this project's root. `esdata` should contain only `nodes` directory now.
+
+Run this to spin up a local elasticsearch for the backed up file
+
+```
+$ docker-compose up
+```
+
+This spins up elasticsearch on `localhost:62223`, with Kibana available in `localhost:62224`, using the data in `esdata`.
+
+Lastly, run this to generate files to `data/` directory:
+
+```
+$ npm start
+```
 
 ## License
 
