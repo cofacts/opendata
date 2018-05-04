@@ -128,15 +128,15 @@ could have some impact on the data credibility.
 
 Please keep in mind that all data in this dataset are user-generated,
 thus is not free from noise and sampling bias coming from these sources:
-- The distribution Cofacts' user may not reflect the real distribution of all LINE users in Taiwan.
-- Users may not use Cofacts exactly the same way we want them to do.
-  Some `articles` may not be actual messages being forwarded in LINE network.
+- The distribution Cofacts' users may not reflect the real distribution of all LINE users in Taiwan.
+- Users may not use Cofacts in the same way we want them to do.
+  Some `articles` may not be actual messages circulating in LINE network.
 - `replies` may contain factual error.
-  All replies should be merely regarded as "responses to the original message to provide different point of view",
-  thus they are neither the "truth" nor the editor's personal opinion.
+  All replies should be merely regarded as "responses to the original message (`article`) to provide different point of view".
+  They are neither the "truth" nor the editor's personal opinion.
 - There may also exist malicious users sending garbage `articles` into the database. [(Previous incident report)](https://hackmd.io/s/SkHt8JZ6l)
-- The program we use to do data collection or dataset generation may contain error.
-  The dataset may be inaccurate systematically.
+- The program to collect data and to generate dataset may contain error.
+  The dataset may be inaccurate systematically in this way.
 
 Lastly, the dataset is provided without warrenty.
 
