@@ -129,7 +129,7 @@ could have some impact on the data credibility.
 Please keep in mind that all data in this dataset are user-generated,
 thus is not free from noise and sampling bias coming from these sources:
 - The distribution Cofacts' users may not reflect the real distribution of all LINE users in Taiwan.
-- Users may not use Cofacts in the same way we want them to do.
+- Users may not use Cofacts in the same way we want them to be.
   Some `articles` may not be actual messages circulating in LINE network.
 - `replies` may contain factual error.
   All replies should be merely regarded as "responses to the original message (`article`) to provide different point of view".
