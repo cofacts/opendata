@@ -121,10 +121,10 @@ This work is published from:
 
 ## ⚠ [NOTICE] Caveats of using this data ⚠
 
-![https://i.imgur.com/e3Awc50.png](Cofacts)
-
 The methodology we use to collect these data (i.e. [how Cofacts works](https://beta.hackfoldr.org/cofacts/https%253A%252F%252Fhackmd.io%252Fs%252FBJSdbUMpZ))
 could have some impact on the data credibility.
+
+![How cofacts work](https://i.imgur.com/e3Awc50.png)
 
 Please keep in mind that all data in this dataset are user-generated,
 thus is not free from noise and sampling bias coming from these sources:
