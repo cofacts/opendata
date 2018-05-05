@@ -3,10 +3,9 @@
 
 In order to facilitate academic research and analysis in fact-checking field under closed messaging platform, Cofacts releases all instant messages and replies in its database to the public domain, under [CC0 license](https://creativecommons.org/publicdomain/zero/1.0/). **Everyone can freely distribute and leverage the dataset**.
 
-## Format
+## Files and formats
 
-All CSV files are utf-8 encoded.
-
+Please find the open data files under `data/` directory. All CSV files are utf-8 encoded and compressed in a zip file.
 
 ### Fields across different entities
 
@@ -100,6 +99,49 @@ The feedback is actually submitted toward an `article_reply`, the connection bet
 | `score`        | Integer     | `1`: Useful. `-1`: Not useful. |
 | `createdAt` | ISO Time string     | When the feedback is submitted |
 
+## License
+
+<p xmlns:dct="http://purl.org/dc/terms/" xmlns:vcard="http://www.w3.org/2001/vcard-rdf/3.0#">
+  <a rel="license"
+     href="http://creativecommons.org/publicdomain/zero/1.0/">
+    <img src="http://i.creativecommons.org/p/zero/1.0/88x31.png" style="border-style: none;" alt="CC0" />
+  </a>
+  <br />
+  To the extent possible under law,
+  <a rel="dct:publisher"
+     href="https://cofacts.g0v.tw">
+    <span property="dct:title">g0v Cofacts Project</span></a>
+  has waived all copyright and related or neighboring rights to
+  <span property="dct:title">Cofacts Dataset</span>.
+This work is published from:
+<span property="vcard:Country" datatype="dct:ISO3166"
+      content="TW" about="https://cofacts.g0v.tw">
+  Taiwan</span>.
+</p>
+
+## ⚠ [NOTICE] Caveats of using this data ⚠
+
+The methodology we use to collect these data (i.e. [how Cofacts works](https://beta.hackfoldr.org/cofacts/https%253A%252F%252Fhackmd.io%252Fs%252FBJSdbUMpZ))
+could have some impact on the data credibility.
+
+![How cofacts work](https://i.imgur.com/e3Awc50.png)
+
+Please keep in mind that all data in this dataset are user-generated,
+thus is not free from noise and sampling bias coming from these sources:
+- The distribution Cofacts' users may not reflect the real distribution of all LINE users in Taiwan.
+- Users may not use Cofacts in the same way we want them to be.
+  Some `articles` may not be actual messages circulating in LINE network.
+- `replies` may contain factual error.
+  All replies should be merely regarded as "responses to the original message (`article`) to provide different point of view".
+  They are neither the "truth" nor the editor's personal opinion.
+- There may also exist malicious users sending garbage `articles` into the database. [(Previous incident report)](https://hackmd.io/s/SkHt8JZ6l)
+- The program to collect data and to generate dataset may contain error.
+  The dataset may be inaccurate systematically in this way.
+
+Lastly, the dataset is provided without warrenty.
+
+THE DATASET IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE DATASET OR THE USE OR OTHER DEALINGS IN THE DATASET.
+
 ## Generating opendata files
 
 We generate the opendata files by backing up production DB to local machine, then run this script on local machine.
@@ -122,23 +164,3 @@ Lastly, run this to generate files to `data/` directory:
 ```
 $ npm start
 ```
-
-## License
-
-<p xmlns:dct="http://purl.org/dc/terms/" xmlns:vcard="http://www.w3.org/2001/vcard-rdf/3.0#">
-  <a rel="license"
-     href="http://creativecommons.org/publicdomain/zero/1.0/">
-    <img src="http://i.creativecommons.org/p/zero/1.0/88x31.png" style="border-style: none;" alt="CC0" />
-  </a>
-  <br />
-  To the extent possible under law,
-  <a rel="dct:publisher"
-     href="https://cofacts.g0v.tw">
-    <span property="dct:title">g0v Cofacts Project</span></a>
-  has waived all copyright and related or neighboring rights to
-  <span property="dct:title">Cofacts Dataset</span>.
-This work is published from:
-<span property="vcard:Country" datatype="dct:ISO3166"
-      content="TW" about="https://cofacts.g0v.tw">
-  Taiwan</span>.
-</p>
