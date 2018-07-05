@@ -29,12 +29,12 @@
     "babel-preset-env": "^1.6.1",
     "babel-preset-stage-3": "^6.24.1",
     "csv-stringify": "^3.0.0",
-    "elasticsearch": "^14.2.2",
+    "elasticsearch": "^15.0.0",
     "jszip": "^3.1.5"
   },
   "devDependencies": {
     "babel-eslint": "^8.2.2",
-    "eslint": "^4.18.2",
+    "eslint": "^5.0.0",
     "eslint-config-prettier": "^2.9.0",
     "eslint-plugin-import": "^2.9.0",
     "eslint-plugin-prettier": "^2.6.0",
