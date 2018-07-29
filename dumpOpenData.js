@@ -170,9 +170,26 @@ async function dumpReplies(replies) {
  */
 function dumpReplyRequests(replyRequests) {
   return generateCSV([
-    ['articleId', 'userIdsha256', 'appId', 'createdAt'],
+    [
+      'articleId',
+      'reason',
+      'positiveFeedbackCount',
+      'negativeFeedbackCount',
+      'userIdsha256',
+      'appId',
+      'createdAt',
+    ],
     ...replyRequests.map(({ _source }) => [
       _source.articleId,
+      _source.reason,
+      (_source.feedbacks || []).reduce((sum, { score }) => {
+        if (score === 1) sum += 1;
+        return sum;
+      }, 0),
+      (_source.feedbacks || []).reduce((sum, { score }) => {
+        if (score === -1) sum += 1;
+        return sum;
+      }, 0),
       sha256(_source.userId),
       _source.appId,
       _source.createdAt,
@@ -186,11 +203,20 @@ function dumpReplyRequests(replyRequests) {
  */
 function dumpArticleReplyFeedbacks(articleReplyFeedbacks) {
   return generateCSV([
-    ['articleId', 'replyId', 'score', 'userIdsha256', 'appId', 'createdAt'],
+    [
+      'articleId',
+      'replyId',
+      'score',
+      'comment',
+      'userIdsha256',
+      'appId',
+      'createdAt',
+    ],
     ...articleReplyFeedbacks.map(({ _source }) => [
       _source.articleId,
       _source.replyId,
       _source.score,
+      _source.comment,
       sha256(_source.userId),
       _source.appId,
       _source.createdAt,

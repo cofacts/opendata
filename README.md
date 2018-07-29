@@ -84,6 +84,9 @@ An user can only submit one reply request to an article.
 | Field            | Data type | Description |
 | --------- | -------- | - |
 | `articleId`        | String     | The target of the request |
+| `reason`        | Text     | The reason why the user wants to submit this reply request |
+| `positiveFeedbackCount`        | Text     | Number of editors think the reason is reasonable |
+| `negativeFeedbackCount`        | Text     | Number of editors think the reason is nonsense |
 | `createdAt` | ISO Time string     | When the reply request is issued |
 
 ### `article_reply_feedbacks.csv`
@@ -97,6 +100,7 @@ The feedback is actually submitted toward an `article_reply`, the connection bet
 | `articleId`        | String     | Relates to `articleId` of the target `article_reply` |
 | `replyId`        | String     | Relates to `replyId` of the target `article_reply` |
 | `score`        | Integer     | `1`: Useful. `-1`: Not useful. |
+| `comment`        | Text     | Why the user chooses such score for this article reply |
 | `createdAt` | ISO Time string     | When the feedback is submitted |
 
 ## License
