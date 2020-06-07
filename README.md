@@ -66,8 +66,8 @@ Editor's reply to the article.
 | Field            | Data type | Description |
 | --------- | -------- | - |
 | `id`        | String     | |
-| `type`      | Enum string     | Type of the reply chosen by the editor. `RUMOR`: The article contains rumor. `NON_RUMOR`: The article contains fact. `OPINIONATED`: The article contains personal opinions. `NOT_ARTICLE`: The article should not be processed by Cofacts. |
-| `reference` | Text     | For `RUMOR` and `NON_RUMOR` replies: The reference to support the chosen `type` and `text`. For `OPINIONATED` replies: References containing different perspectives from the `article`. For `NOT_ARTICLE`: empty string. |
+| `type`      | Enum string     | Type of the reply chosen by the editor. `RUMOR`: The article contains rumor. `NOT_RUMOR`: The article contains fact. `OPINIONATED`: The article contains personal opinions. `NOT_ARTICLE`: The article should not be processed by Cofacts. |
+| `reference` | Text     | For `RUMOR` and `NOT_RUMOR` replies: The reference to support the chosen `type` and `text`. For `OPINIONATED` replies: References containing different perspectives from the `article`. For `NOT_ARTICLE`: empty string. |
 | `userId`    | String     | The editor that authored this reply. |
 | `appId`     | String     | |
 | `text`      | Text     | Reply text writtern by the editor |
