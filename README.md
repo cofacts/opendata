@@ -28,13 +28,27 @@ The instant messages LINE bot users submitted into the database.
 | `references`              | Enum string     | Where the message is from. Currently the only possible value is `LINE`. |
 | `userIdsha`                  | String     | Author of the article.|
 | `appId`                   | String     |  |
-| `tags`                    | Text     | Preserved for [category labels](https://github.com/cofacts/rumors-api/issues/32), currently empty. |
 | `normalArticleReplyCount` | Integer     | The number of replies are associated to this article, excluding the deleted reply associations. |
 | `text`                    | Text     | The instant message text |
-| `hyperlinks`              | Text     | Preserved. Now empty. |
 | `createdAt`               | ISO time string     | When the article is submitted to the database. |
 | `updatedAt`               | ISO time string     | Preserved, currently identical to `createdAt` |
 | `lastRequestedAt`         | ISO time string     | The submission time of the last `reply_request` is sent on the article, before the article is replied.  |
+
+### `article_hyperlinks.csv`
+
+Parsed hyperlink contents in each instant messages, parsed using [cofacts/url-resolver](https://github.com/cofacts/url-resolver/).
+The data is used in Cofacts system for indexing and retrieving messages.
+
+| Field            | Data type | Description |
+| ---------------- | -------- | ---- |
+| `articleId`      | String     |                                    |
+| `url`            | String     | The URL string detected in article |
+| `normalizedUrl`  | String     | Canonical URL after normalization process including unfolding shortened URLs |
+| `title`          | String     | Title of the scrapped web content |
+
+Note: Scrapped contents do not belong to Cofacts and are redistributed under research purposes.
+The scrapping mechanism is not reliable either.
+Researchers may need to implement their own scrapper if content is important in their research.
 
 ### `article_replies.csv`
 
@@ -72,6 +86,22 @@ Editor's reply to the article.
 | `appId`     | String     | |
 | `text`      | Text     | Reply text writtern by the editor |
 | `createdAt` | ISO Time string     | When the reply is written |
+
+### `reply_hyperlinks.csv`
+
+Parsed hyperlink contents in reply text and references, parsed using [cofacts/url-resolver](https://github.com/cofacts/url-resolver/).
+The data is used in Cofacts system for URL previews.
+
+| Field            | Data type | Description |
+| ---------------- | -------- | ---- |
+| `replyId`      | String     |                                    |
+| `url`            | String     | The URL string detected in article |
+| `normalizedUrl`  | String     | Canonical URL after normalization process including unfolding shortened URLs |
+| `title`          | String     | Title of the scrapped web content |
+
+Note: Scrapped contents do not belong to Cofacts and are redistributed under research purposes.
+The scrapping mechanism implementation is not reliable either.
+Researchers may need to implement their own scrapper if content is important in their research.
 
 ### `reply_requests.csv`
 

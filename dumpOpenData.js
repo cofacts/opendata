@@ -78,11 +78,9 @@ function dumpArticles(articles) {
       'id',
       'references', // array of strings
       'userIdsha256',
-      'tags', // array of strings
       'normalArticleReplyCount',
       'appId',
       'text',
-      'hyperlinks',
       'createdAt',
       'updatedAt',
       'lastRequestedAt',
@@ -91,11 +89,9 @@ function dumpArticles(articles) {
       _id,
       _source.references.map(ref => ref.type).join(','),
       sha256(_source.userId),
-      _source.tags.join(','),
       _source.normalArticleReplyCount,
       _source.appId,
       _source.text,
-      (_source.hyperlinks || []).join(','),
       _source.createdAt,
       _source.updatedAt,
       _source.lastRequestedAt,
@@ -107,8 +103,26 @@ function dumpArticles(articles) {
  * @param {object[]} articles
  * @returns {Promise<string>} Generated CSV string
  */
+function dumpArticleHyperlinks(articles) {
+  return generateCSV([
+    ['articleId', 'url', 'normalizedUrl', 'title'],
+    ...articles.flatMap(({ _id, _source }) =>
+      (_source.hyperlinks || []).map(hyperlink => [
+        _id,
+        hyperlink.url,
+        hyperlink.normalizedUrl,
+        hyperlink.title,
+      ])
+    ),
+  ]);
+}
+
+/**
+ * @param {object[]} articles
+ * @returns {Promise<string>} Generated CSV string
+ */
 function dumpArticleReplies(articles) {
-  const csvInput = [
+  return generateCSV([
     [
       'articleId',
       'replyId',
@@ -121,13 +135,8 @@ function dumpArticleReplies(articles) {
       'createdAt',
       'updatedAt',
     ],
-  ];
-
-  articles.forEach(({ _source: { articleReplies }, _id }) => {
-    if (!articleReplies) return;
-
-    articleReplies.forEach(ar => {
-      csvInput.push([
+    ...articles.flatMap(({ _source: { articleReplies }, _id }) =>
+      (articleReplies || []).map(ar => [
         _id,
         ar.replyId,
         sha256(ar.userId),
@@ -138,11 +147,9 @@ function dumpArticleReplies(articles) {
         ar.status,
         ar.createdAt,
         ar.updatedAt,
-      ]);
-    });
-  });
-
-  return generateCSV(csvInput);
+      ])
+    ),
+  ]);
 }
 
 /**
@@ -161,6 +168,24 @@ async function dumpReplies(replies) {
       _source.text,
       _source.createdAt,
     ]),
+  ]);
+}
+
+/**
+ * @param {object[]} replies
+ * @returns {Promise<string>} Generated CSV string
+ */
+function dumpReplyHyperlinks(replies) {
+  return generateCSV([
+    ['replyId', 'url', 'normalizedUrl', 'title'],
+    ...replies.flatMap(({ _id, _source }) =>
+      (_source.hyperlinks || []).map(hyperlink => [
+        _id,
+        hyperlink.url,
+        hyperlink.normalizedUrl,
+        hyperlink.title,
+      ])
+    ),
   ]);
 }
 
@@ -254,10 +279,13 @@ function writeFile(fileName) {
 const articlePromise = scanIndex('articles');
 articlePromise.then(dumpArticles).then(writeFile('articles.csv'));
 articlePromise.then(dumpArticleReplies).then(writeFile('article_replies.csv'));
+articlePromise
+  .then(dumpArticleHyperlinks)
+  .then(writeFile('article_hyperlinks.csv'));
 
-scanIndex('replies')
-  .then(dumpReplies)
-  .then(writeFile('replies.csv'));
+const replyPromise = scanIndex('replies');
+replyPromise.then(dumpReplies).then(writeFile('replies.csv'));
+replyPromise.then(dumpReplyHyperlinks).then(writeFile('reply_hyperlinks.csv'));
 
 scanIndex('replyrequests')
   .then(dumpReplyRequests)
