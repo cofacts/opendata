@@ -52,6 +52,34 @@ Note: Scrapped contents do not belong to Cofacts and are redistributed under res
 The scrapping mechanism is not reliable either.
 Researchers may need to implement their own scrapper if content is important in their research.
 
+### `article_categories.csv`
+
+Categories linked to this article.
+
+| Field            | Data type  | Description |
+| ---------------- | ---------- | ---- |
+| `articleId`      | String     |                                    |
+| `categoryId`     | String     |
+| `aiConfidence`   | Number     | Confidence level by AI marking this category. Empty for crowd-sourced labels. |
+| `aiModel` .      | String     | Name of the AI model marking this cateogry. Empty for crowd-sourced labels. |
+| `userIdsha` .    | String     | The person that connected article and category. |
+| `appId` .        | String     |  |
+| `negativeFeedbackCount` | Integer     | Number of `article_category_feedbacks` that has score `-1` |
+| `positiveFeedbackCount` | Integer     | Number of `article_category_feedbacks` that has score `1` |
+| `status`                | Enum string     | `NORMAL`: The category and article are connected. `DELETED`: The category does not connect to the article anymore. |
+| `createdAt`      | ISO time string     | The time when the reply is connected to the article |
+| `updatedAt`             | ISO time string     | The latest date when the category's status is updated |
+
+### `categories.csv`
+
+| Field         | Data type | Description |
+| ------------- | --------- | ----------- |
+| `id`          | String    |             |
+| `title`       | String    | Name of the category |
+| `description` | Text      | Definition of the category |
+| `createdAt`   | ISO time string     |   |
+| `updatedAt`   | ISO time string     |   |
+
 ### `article_replies.csv`
 
 Articles and replies are in has-and-belongs-to-many relationship. That is, an article can have multiple replies, and a reply can be connected to multiple similar articles.

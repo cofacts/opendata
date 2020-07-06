@@ -120,6 +120,43 @@ function dumpArticleHyperlinks(articles) {
  * @param {object[]} articles
  * @returns {Promise<string>} Generated CSV string
  */
+function dumpArticleCategories(articles) {
+  return generateCSV([
+    [
+      'articleId',
+      'categoryId',
+      'aiConfidence',
+      'aiModel',
+      'userIdsha',
+      'appId',
+      'negativeFeedbackCount',
+      'positiveFeedbackCount',
+      'status',
+      'createdAt',
+      'updatedAt',
+    ],
+    ...articles.flatMap(({ _id, _source }) =>
+      (_source.articleCategories || []).map(ac => [
+        _id,
+        ac.categoryId,
+        ac.aiConfidence,
+        ac.aiModel,
+        sha256(ac.userId),
+        ac.appId,
+        ac.negativeFeedbackCount,
+        ac.positiveFeedbackCount,
+        ac.status,
+        ac.createdAt,
+        ac.updatedAt,
+      ])
+    ),
+  ]);
+}
+
+/**
+ * @param {object[]} articles
+ * @returns {Promise<string>} Generated CSV string
+ */
 function dumpArticleReplies(articles) {
   return generateCSV([
     [
@@ -185,6 +222,23 @@ function dumpReplyHyperlinks(replies) {
         hyperlink.title,
       ])
     ),
+  ]);
+}
+
+/**
+ * @param {object[]} categories
+ * @returns {Promise<string>} Generated CSV string
+ */
+function dumpCategories(categories) {
+  return generateCSV([
+    ['id', 'title', 'description', 'createdAt', 'updatedAt'],
+    ...categories.map(({ _id, _source }) => [
+      _id,
+      _source.title,
+      _source.description,
+      _source.createdAt,
+      _source.updatedAt,
+    ]),
   ]);
 }
 
@@ -300,6 +354,9 @@ articlePromise.then(dumpArticleReplies).then(writeFile('article_replies.csv'));
 articlePromise
   .then(dumpArticleHyperlinks)
   .then(writeFile('article_hyperlinks.csv'));
+articlePromise
+  .then(dumpArticleCategories)
+  .then(writeFile('article_categories.csv'));
 
 const replyPromise = scanIndex('replies');
 replyPromise.then(dumpReplies).then(writeFile('replies.csv'));
@@ -308,6 +365,10 @@ replyPromise.then(dumpReplyHyperlinks).then(writeFile('reply_hyperlinks.csv'));
 scanIndex('replyrequests')
   .then(dumpReplyRequests)
   .then(writeFile('reply_requests.csv'));
+
+scanIndex('categories')
+  .then(dumpCategories)
+  .then(writeFile('categories.csv'));
 
 scanIndex('articlereplyfeedbacks')
   .then(dumpArticleReplyFeedbacks)
