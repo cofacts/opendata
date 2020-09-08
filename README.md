@@ -1,6 +1,8 @@
 【Cofacts 真的假的】Open Datasets
 =====
 
+[![Build Status](https://travis-ci.org/cofacts/opendata.svg?branch=master)](https://travis-ci.org/cofacts/opendata)
+
 In order to facilitate academic research and analysis in fact-checking field under closed messaging platform, Cofacts releases all instant messages and replies in its database to the public domain, under [CC0 license](https://creativecommons.org/publicdomain/zero/1.0/). **Everyone can freely distribute and leverage the dataset**.
 
 ## Files and formats
