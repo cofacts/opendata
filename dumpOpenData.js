@@ -1,6 +1,6 @@
 import fs from 'fs';
 import crypto from 'crypto';
-import elasticsearch from 'elasticsearch';
+import elasticsearch from '@elastic/elasticsearch';
 import csvStringify from 'csv-stringify';
 import JSZip from 'jszip';
 
@@ -8,8 +8,7 @@ const ELASTICSEARCH_URL = 'http://localhost:62223';
 const OUTPUT_DIR = './data';
 
 const client = new elasticsearch.Client({
-  host: ELASTICSEARCH_URL,
-  log: 'info',
+  node: ELASTICSEARCH_URL,
 });
 
 /**
@@ -43,7 +42,7 @@ function sha256(input) {
 async function scanIndex(index) {
   let result = [];
 
-  const initialResult = await client.search({
+  const { body: initialResult } = await client.search({
     index,
     size: 200,
     scroll: '5m',
@@ -56,7 +55,7 @@ async function scanIndex(index) {
   });
 
   while (result.length < totalCount) {
-    const scrollResult = await client.scroll({
+    const { body: scrollResult } = await client.scroll({
       scrollId: initialResult._scroll_id,
       scroll: '5m',
     });
@@ -250,6 +249,25 @@ function dumpArticleReplyFeedbacks(articleReplyFeedbacks) {
 }
 
 /**
+ * @param {object[]} articleReplyFeedbacks
+ * @returns {Promise<string>} Generated CSV string
+ */
+function dumpAnalytics(analytics) {
+  return generateCSV([
+    ['type', 'docId', 'date', 'lineUser', 'lineVisit', 'webUser', 'webVisit'],
+    ...analytics.map(({ _source }) => [
+      _source.type,
+      _source.docId,
+      _source.date,
+      _source.stats.lineUser,
+      _source.stats.lineVisit,
+      _source.stats.webUser,
+      _source.stats.webVisit,
+    ]),
+  ]);
+}
+
+/**
  * @param {string} fileName The name of file to be put in a zip file
  * @returns {({string}) => (none)}
  */
@@ -294,3 +312,7 @@ scanIndex('replyrequests')
 scanIndex('articlereplyfeedbacks')
   .then(dumpArticleReplyFeedbacks)
   .then(writeFile('article_reply_feedbacks.csv'));
+
+scanIndex('analytics')
+  .then(dumpAnalytics)
+  .then(writeFile('analytics.csv'));

@@ -133,6 +133,20 @@ The feedback is actually submitted toward an `article_reply`, the connection bet
 | `comment`        | Text     | Why the user chooses such score for this article reply |
 | `createdAt` | ISO Time string     | When the feedback is submitted |
 
+### `analytics.csv`
+
+Usage (visit / show) statistics of website and Cofacts LINE bot.
+
+| Field       | Data type       | Description |
+| ----------- | --------------- | ----------- |
+| `type`      | Enum string     | Either `article` or `reply` |
+| `docId`     | String          | Article ID or Reply ID that is being visited / shown |
+| `date`      | ISO Time string | The date of usage, represented by start of the day (0:00:00+08:00) |
+| `lineUser`  | Integer         | The number of LINE users selected this article / reply in Cofacts LINE bot in this date. May be empty if no users |
+| `lineVisit` | Integer         | The number of times this article / reply shown in Cofacts LINE bot in this date. May be empty if no visits |
+| `webUser`   | Integer         | The number of web users selected this article / reply in Cofacts website in this date. May be empty if no users |
+| `webVisit`  | Integer         | The number of visits of this article / reply in Cofacts website in this date. May be empty if no visits |
+
 ## License
 
 <p xmlns:dct="http://purl.org/dc/terms/" xmlns:vcard="http://www.w3.org/2001/vcard-rdf/3.0#">
