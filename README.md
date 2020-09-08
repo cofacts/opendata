@@ -139,6 +139,8 @@ The feedback is actually submitted toward an `article_reply`, the connection bet
 
 Usage (visit / show) statistics of website and Cofacts LINE bot.
 
+LINE bot data starts from April 2nd, 2018; website data starts from May 3rd, 2017.
+
 | Field       | Data type       | Description |
 | ----------- | --------------- | ----------- |
 | `type`      | Enum string     | Either `article` or `reply` |
