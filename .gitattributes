@@ -6,3 +6,5 @@ data/reply_hyperlinks.csv.zip filter=lfs diff=lfs merge=lfs -text
 data/reply_requests.csv.zip filter=lfs diff=lfs merge=lfs -text
 data/analytics.csv.zip filter=lfs diff=lfs merge=lfs -text
 data/article_hyperlinks.csv.zip filter=lfs diff=lfs merge=lfs -text
+data/categories.csv.zip filter=lfs diff=lfs merge=lfs -text
+data/article_categories.csv.zip filter=lfs diff=lfs merge=lfs -text
