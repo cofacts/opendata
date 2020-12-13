@@ -3,12 +3,16 @@
 
 [![Build Status](https://travis-ci.org/cofacts/opendata.svg?branch=master)](https://travis-ci.org/cofacts/opendata)
 
+Cofacts data sets includes instant messages reported by [Cofacts chatbot](https://line.me/R/ti/p/@cofacts) users, and the replies written by [Cofacts crowd-sourced fact-checking community](https://www.facebook.com/groups/cofacts/).
+
 ## Terms
 
-All instant messages and replies in its database to under [CC BY-SA license](https://creativecommons.org/publicdomain/zero/1.0/). **Everyone can freely share and adapt the dataset** under the following terms:
+All instant messages and replies in this database is released under [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/). **Everyone can freely share and adapt the dataset** under the following terms:
 
 1. Attribution: please attribute this work using the attribution below.
 2. If you remix, transform or build upon the data set, please distribute your contributions under the [same license](https://creativecommons.org/licenses/by-sa/4.0/).
+
+This term also applies to all the data provided by [Cofacts API server](https://cofacts-api.g0v.tw).
 
 ### Attribution
 <a rel="license" href="http://creativecommons.org/licenses/by-sa/4.0/"><img alt="Creative Commons License" style="border-width:0" src="https://i.creativecommons.org/l/by-sa/4.0/88x31.png" /></a><br />This <span xmlns:dct="http://purl.org/dc/terms/" href="http://purl.org/dc/dcmitype/Dataset" rel="dct:type">work</span> by <a xmlns:cc="http://creativecommons.org/ns#" href="https://github.com/cofacts/opendata" property="cc:attributionName" rel="cc:attributionURL">Cofacts crowd-sourced fact-checking community</a> is licensed under a <a rel="license" href="http://creativecommons.org/licenses/by-sa/4.0/">Creative Commons Attribution-ShareAlike 4.0 International License</a>.
