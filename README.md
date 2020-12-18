@@ -3,7 +3,22 @@
 
 [![Build Status](https://travis-ci.org/cofacts/opendata.svg?branch=master)](https://travis-ci.org/cofacts/opendata)
 
-In order to facilitate academic research and analysis in fact-checking field under closed messaging platform, Cofacts releases all instant messages and replies in its database to the public domain, under [CC0 license](https://creativecommons.org/publicdomain/zero/1.0/). **Everyone can freely distribute and leverage the dataset**.
+Cofacts data sets includes instant messages reported by [Cofacts chatbot](https://line.me/R/ti/p/@cofacts) users, and the replies written by [Cofacts crowd-sourced fact-checking community](https://www.facebook.com/groups/cofacts/).
+
+## Terms
+
+All instant messages and replies in this database is released under [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/). **Everyone can freely share and adapt the dataset** under the following terms:
+
+1. Attribution: please attribute this work using the attribution below.
+2. If you remix, transform or build upon the data set, please distribute your contributions under the [same license](https://creativecommons.org/licenses/by-sa/4.0/).
+
+This term also applies to all the data provided by [Cofacts API server](https://cofacts-api.g0v.tw).
+
+### Attribution
+<a rel="license" href="http://creativecommons.org/licenses/by-sa/4.0/"><img alt="Creative Commons License" style="border-width:0" src="https://i.creativecommons.org/l/by-sa/4.0/88x31.png" /></a><br />This <span xmlns:dct="http://purl.org/dc/terms/" href="http://purl.org/dc/dcmitype/Dataset" rel="dct:type">work</span> by <a xmlns:cc="http://creativecommons.org/ns#" href="https://github.com/cofacts/opendata" property="cc:attributionName" rel="cc:attributionURL">Cofacts crowd-sourced fact-checking community</a> is licensed under a <a rel="license" href="http://creativecommons.org/licenses/by-sa/4.0/">Creative Commons Attribution-ShareAlike 4.0 International License</a>.
+
+### 中文版標示
+<a rel="license" href="http://creativecommons.org/licenses/by-sa/4.0/"><img alt="創用 CC 授權條款" style="border-width:0" src="https://i.creativecommons.org/l/by-sa/4.0/88x31.png" /></a><br />本<span xmlns:dct="http://purl.org/dc/terms/" href="http://purl.org/dc/dcmitype/Dataset" rel="dct:type">資訊</span>由<a xmlns:cc="http://creativecommons.org/ns#" href="https://github.com/cofacts/opendata" property="cc:attributionName" rel="cc:attributionURL">Cofacts 群眾查核社群</a>提供，以<a rel="license" href="http://creativecommons.org/licenses/by-sa/4.0/">創用CC 姓名標示-相同方式分享 4.0 國際 授權條款</a>釋出。
 
 ## Files and formats
 
@@ -178,26 +193,6 @@ LINE bot data starts from April 2nd, 2018; website data starts from May 3rd, 201
 | `lineVisit` | Integer         | The number of times this article / reply shown in Cofacts LINE bot in this date. May be empty if no visits |
 | `webUser`   | Integer         | The number of web users selected this article / reply in Cofacts website in this date. May be empty if no users |
 | `webVisit`  | Integer         | The number of visits of this article / reply in Cofacts website in this date. May be empty if no visits |
-
-## License
-
-<p xmlns:dct="http://purl.org/dc/terms/" xmlns:vcard="http://www.w3.org/2001/vcard-rdf/3.0#">
-  <a rel="license"
-     href="http://creativecommons.org/publicdomain/zero/1.0/">
-    <img src="http://i.creativecommons.org/p/zero/1.0/88x31.png" style="border-style: none;" alt="CC0" />
-  </a>
-  <br />
-  To the extent possible under law,
-  <a rel="dct:publisher"
-     href="https://cofacts.g0v.tw">
-    <span property="dct:title">g0v Cofacts Project</span></a>
-  has waived all copyright and related or neighboring rights to
-  <span property="dct:title">Cofacts Dataset</span>.
-This work is published from:
-<span property="vcard:Country" datatype="dct:ISO3166"
-      content="TW" about="https://cofacts.g0v.tw">
-  Taiwan</span>.
-</p>
 
 ## ⚠ [NOTICE] Caveats of using this data ⚠
 
