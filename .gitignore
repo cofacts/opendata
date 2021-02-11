@@ -2,3 +2,4 @@ node_modules
 *.log
 esdata
 **/.DS_Store
+data
