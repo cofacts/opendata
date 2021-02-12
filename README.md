@@ -5,20 +5,37 @@
 
 Cofacts data sets includes instant messages reported by [Cofacts chatbot](https://line.me/R/ti/p/@cofacts) users, and the replies written by [Cofacts crowd-sourced fact-checking community](https://www.facebook.com/groups/cofacts/).
 
+## Access the datasets
+
+<a rel="license" href="http://creativecommons.org/licenses/by-sa/4.0/"><img alt="Creative Commons License" style="border-width:0" src="https://i.creativecommons.org/l/by-sa/4.0/88x31.png" /></a>
+
+Cofacts Working Group distributes the dataset using Google Drive.
+
+📥 **Please fill in [this form][form-link] to access the dataset.**
+
+Cofacts 真的假的工作小組使用 Google Drive 發布 Cofacts 所提供資料。
+
+📥 **請填寫[此份表單][form-link]存取 Cofacts 所提供資料。**
+
+[form-link]: https://forms.gle/nYaaVSLDX5i5vScT7
+
+Accessing the Cofacts data means that you agree to the Data User Agreement described in `LEGAL.md`. In general, **Everyone can freely share and adapt the dataset** as long as they follow the terms and conditions described in [CC BY-SA 4.0](http://creativecommons.org/licenses/by-sa/4.0/) and in `LEGAL.md`.
+
+In general, when you redistribute Cofacts data outside of LINE application, the attribution specified by Cofacts Working Group is:
+
+> This data by Cofacts message reporting chatbot and crowd-sourced fact-checking community is licensed under CC BY-SA 4.0. To provide more info, please visit Cofacts LINE bot https://line.me/ti/p/@cofacts
+
+除非以其他方式議定，否則 Cofacts 真的假的工作小組，針對在 LINE 之外的地方散布的 Cofacts 所提供資料，所指定的中文顯名聲明為：
+
+> 本編輯資料取自「Cofacts 真的假的」訊息回報機器人與查證協作社群，採 CC BY-SA 4.0 授權提供。若欲補充資訊請訪問 Cofacts LINE bot https://line.me/ti/p/@cofacts
+
+Please see `LEGAL.md` for more detail.
+
 ## Terms
 
-All instant messages and replies in this database is released under [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/). **Everyone can freely share and adapt the dataset** under the following terms:
+`LEGAL.md` is the user agreement for Cofacts data users that leverages Cofacts data described here or via API.
 
-1. Attribution: please attribute this work using the attribution below.
-2. If you remix, transform or build upon the data set, please distribute your contributions under the [same license](https://creativecommons.org/licenses/by-sa/4.0/).
-
-This term also applies to all the data provided by [Cofacts API server](https://cofacts-api.g0v.tw).
-
-### Attribution
-<a rel="license" href="http://creativecommons.org/licenses/by-sa/4.0/"><img alt="Creative Commons License" style="border-width:0" src="https://i.creativecommons.org/l/by-sa/4.0/88x31.png" /></a><br />This <span xmlns:dct="http://purl.org/dc/terms/" href="http://purl.org/dc/dcmitype/Dataset" rel="dct:type">work</span> by <a xmlns:cc="http://creativecommons.org/ns#" href="https://github.com/cofacts/opendata" property="cc:attributionName" rel="cc:attributionURL">Cofacts crowd-sourced fact-checking community</a> is licensed under a <a rel="license" href="http://creativecommons.org/licenses/by-sa/4.0/">Creative Commons Attribution-ShareAlike 4.0 International License</a>.
-
-### 中文版標示
-<a rel="license" href="http://creativecommons.org/licenses/by-sa/4.0/"><img alt="創用 CC 授權條款" style="border-width:0" src="https://i.creativecommons.org/l/by-sa/4.0/88x31.png" /></a><br />本<span xmlns:dct="http://purl.org/dc/terms/" href="http://purl.org/dc/dcmitype/Dataset" rel="dct:type">資訊</span>由<a xmlns:cc="http://creativecommons.org/ns#" href="https://github.com/cofacts/opendata" property="cc:attributionName" rel="cc:attributionURL">Cofacts 群眾查核社群</a>提供，以<a rel="license" href="http://creativecommons.org/licenses/by-sa/4.0/">創用CC 姓名標示-相同方式分享 4.0 國際 授權條款</a>釋出。
+`LICENSE` defines the license agreement for the source code in this repository.
 
 ## Formats
 
