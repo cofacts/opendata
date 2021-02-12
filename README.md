@@ -20,9 +20,11 @@ This term also applies to all the data provided by [Cofacts API server](https://
 ### 中文版標示
 <a rel="license" href="http://creativecommons.org/licenses/by-sa/4.0/"><img alt="創用 CC 授權條款" style="border-width:0" src="https://i.creativecommons.org/l/by-sa/4.0/88x31.png" /></a><br />本<span xmlns:dct="http://purl.org/dc/terms/" href="http://purl.org/dc/dcmitype/Dataset" rel="dct:type">資訊</span>由<a xmlns:cc="http://creativecommons.org/ns#" href="https://github.com/cofacts/opendata" property="cc:attributionName" rel="cc:attributionURL">Cofacts 群眾查核社群</a>提供，以<a rel="license" href="http://creativecommons.org/licenses/by-sa/4.0/">創用CC 姓名標示-相同方式分享 4.0 國際 授權條款</a>釋出。
 
-## Files and formats
+## Formats
 
-Please find the open data files under `data/` directory. All CSV files are utf-8 encoded and compressed in a zip file.
+All CSV files are utf-8 encoded and compressed in a zip file.
+
+We use [`csv-stringify`](https://www.npmjs.com/package/csv-stringify) to perform escape and handle quotes.
 
 ### Fields across different entities
 
@@ -189,10 +191,10 @@ LINE bot data starts from April 2nd, 2018; website data starts from May 3rd, 201
 | `type`      | Enum string     | Either `article` or `reply` |
 | `docId`     | String          | Article ID or Reply ID that is being visited / shown |
 | `date`      | ISO Time string | The date of usage, represented by start of the day (0:00:00+08:00) |
-| `lineUser`  | Integer         | The number of LINE users selected this article / reply in Cofacts LINE bot in this date. May be empty if no users |
-| `lineVisit` | Integer         | The number of times this article / reply shown in Cofacts LINE bot in this date. May be empty if no visits |
-| `webUser`   | Integer         | The number of web users selected this article / reply in Cofacts website in this date. May be empty if no users |
-| `webVisit`  | Integer         | The number of visits of this article / reply in Cofacts website in this date. May be empty if no visits |
+| `lineUser`  | Integer         | The number of LINE users who inspected this article / reply in Cofacts LINE bot in this date. May be empty if no such users |
+| `lineVisit` | Integer         | The number of times this article / reply is inspected in Cofacts LINE bot in this date. May be empty if no visits |
+| `webUser`   | Integer         | The number of web users who visited this article page (`/article/<docId>`) / reply page (`/reply/<docId>`) in Cofacts website in this date. May be empty if no such users |
+| `webVisit`  | Integer         | The number of page views of this article page (`/article/<docId>`) / reply page (`/reply/<docId>`) in Cofacts website in this date. May be empty if no page views |
 
 ## ⚠ [NOTICE] Caveats of using this data ⚠
 
@@ -293,7 +295,7 @@ Before publishing opendata, update your elasticsearch with the following command
 
 ```
 # Gets all snapshots in the repository
-GET /_snapshot/cofacts/_all
+GET /_snapshot/cofacts/_all?verbose=false
 ```
 
 Find the latest snapshot name (like `2020-07-05` below), then run the following command to
@@ -314,7 +316,7 @@ POST /_snapshot/cofacts/2020-07-05/_restore
 To find out current recovery progress, run this:
 
 ```
-GET /_recovery?human
+GET /_recovery?human&filter_path=*.shards.stage,*.shards.index.size.percent
 ```
 
 After all indices are restored, run `npm start` in CLI to generate opendata files.
