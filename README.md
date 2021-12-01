@@ -228,7 +228,7 @@ thus is not free from noise and sampling bias coming from these sources:
 - `replies` may contain factual error.
   All replies should be merely regarded as "responses to the original message (`article`) to provide different point of view".
   They are neither the "truth" nor the editor's personal opinion.
-- There may also exist malicious users sending garbage `articles` into the database. [(Previous incident report)](https://hackmd.io/s/SkHt8JZ6l)
+- There may also exist malicious users sending garbage `articles` into the database. [(Previous incident report)](https://hackmd.io/@cofacts/incidents)
 - The program to collect data and to generate dataset may contain error.
   The dataset may be inaccurate systematically in this way.
 
