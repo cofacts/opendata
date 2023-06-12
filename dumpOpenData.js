@@ -1,7 +1,9 @@
 import fs from 'fs';
+import { pipeline } from 'stream/promises';
+import { Readable } from 'stream';
 import crypto from 'crypto';
 import elasticsearch from '@elastic/elasticsearch';
-import csvStringify from 'csv-stringify';
+import { stringify as csvStringify } from 'csv-stringify/sync';
 import JSZip from 'jszip';
 
 const ELASTICSEARCH_URL = 'http://localhost:62223';
@@ -39,8 +41,8 @@ function sha256(input) {
     : '';
 }
 
-async function scanIndex(index) {
-  let result = [];
+async function* scanIndex(index) {
+  let processedCount = 0;
 
   const { body: initialResult } = await client.search({
     index,
@@ -50,21 +52,21 @@ async function scanIndex(index) {
 
   const totalCount = initialResult.hits.total;
 
-  initialResult.hits.hits.forEach(hit => {
-    result.push(hit);
-  });
+  for (const hit of initialResult.hits.hits) {
+    processedCount += 1;
+    yield hit;
+  }
 
-  while (result.length < totalCount) {
+  while (processedCount < totalCount) {
     const { body: scrollResult } = await client.scroll({
       scrollId: initialResult._scroll_id,
       scroll: '5m',
     });
-    scrollResult.hits.hits.forEach(hit => {
-      result.push(hit);
-    });
+    for (const hit of scrollResult.hits.hits) {
+      processedCount += 1;
+      yield hit;
+    }
   }
-
-  return result;
 }
 
 /**
@@ -229,17 +231,23 @@ function dumpReplyHyperlinks(replies) {
  * @param {object[]} categories
  * @returns {Promise<string>} Generated CSV string
  */
-function dumpCategories(categories) {
-  return generateCSV([
+async function* dumpCategories(categories) {
+  yield csvStringify([
     ['id', 'title', 'description', 'createdAt', 'updatedAt'],
-    ...categories.map(({ _id, _source }) => [
-      _id,
-      _source.title,
-      _source.description,
-      _source.createdAt,
-      _source.updatedAt,
-    ]),
   ]);
+
+  for await (const { _id, _source } of categories) {
+
+    yield csvStringify([
+      [
+        _id,
+        _source.title,
+        _source.description,
+        _source.createdAt,
+        _source.updatedAt,
+      ],
+    ]);
+  }
 }
 
 /**
@@ -303,44 +311,54 @@ function dumpArticleReplyFeedbacks(articleReplyFeedbacks) {
 }
 
 /**
- * @param {object[]} articleReplyFeedbacks
+ * @param {AsyncIterable} analytics
  * @returns {Promise<string>} Generated CSV string
  */
-function dumpAnalytics(analytics) {
-  return generateCSV([
+async function* dumpAnalytics(analytics) {
+  yield csvStringify([
     ['type', 'docId', 'date', 'lineUser', 'lineVisit', 'webUser', 'webVisit'],
-    ...analytics.map(({ _source }) => [
-      _source.type,
-      _source.docId,
-      _source.date,
-      _source.stats.lineUser,
-      _source.stats.lineVisit,
-      _source.stats.webUser,
-      _source.stats.webVisit,
-    ]),
   ]);
+
+  for await (const { _source } of analytics) {
+    yield csvStringify([
+      [
+        _source.type,
+        _source.docId,
+        _source.date,
+        _source.stats.lineUser,
+        _source.stats.lineVisit,
+        _source.stats.webUser,
+        _source.stats.webVisit,
+      ],
+    ]);
+  }
 }
 
 /**
  * @param {string} fileName The name of file to be put in a zip file
- * @returns {({string}) => (none)}
+ * @returns {(source: AsyncIterable) => void}
  */
 function writeFile(fileName) {
-  return data => {
+  return source => {
     const zip = new JSZip();
-    zip.file(fileName, data);
+    zip.file(fileName, Readable.from(source), {binary: false});
 
-    // Ref: https://stuk.github.io/jszip/documentation/howto/write_zip.html#in-nodejs
-    //
-    zip
-      .generateNodeStream({
-        type: 'nodebuffer',
-        streamFiles: true,
-        compression: 'DEFLATE',
-        compressionOptions: { level: 8 },
-      })
-      .pipe(fs.createWriteStream(`${OUTPUT_DIR}/${fileName}.zip`))
-      .on('finish', () => console.log(`${fileName}.zip written.`));
+    return new Promise(resolve => {
+      // Ref: https://stuk.github.io/jszip/documentation/howto/write_zip.html#in-nodejs
+      //
+      zip
+        .generateNodeStream({
+          type: 'nodebuffer',
+          streamFiles: true,
+          compression: 'DEFLATE',
+          compressionOptions: { level: 8 },
+        })
+        .pipe(fs.createWriteStream(`${OUTPUT_DIR}/${fileName}.zip`))
+        .on('finish', () => {
+          console.info(`${fileName}.zip written.`);
+          resolve(fileName);
+        });
+    });
   };
 }
 
@@ -348,32 +366,28 @@ function writeFile(fileName) {
  * Main process
  */
 
-const articlePromise = scanIndex('articles');
-articlePromise.then(dumpArticles).then(writeFile('articles.csv'));
-articlePromise.then(dumpArticleReplies).then(writeFile('article_replies.csv'));
-articlePromise
-  .then(dumpArticleHyperlinks)
-  .then(writeFile('article_hyperlinks.csv'));
-articlePromise
-  .then(dumpArticleCategories)
-  .then(writeFile('article_categories.csv'));
+// const articlePromise = scanIndex('articles');
+// articlePromise.then(dumpArticles).then(writeFile('articles.csv'));
+// articlePromise.then(dumpArticleReplies).then(writeFile('article_replies.csv'));
+// articlePromise
+//   .then(dumpArticleHyperlinks)
+//   .then(writeFile('article_hyperlinks.csv'));
+// articlePromise
+//   .then(dumpArticleCategories)
+//   .then(writeFile('article_categories.csv'));
 
-const replyPromise = scanIndex('replies');
-replyPromise.then(dumpReplies).then(writeFile('replies.csv'));
-replyPromise.then(dumpReplyHyperlinks).then(writeFile('reply_hyperlinks.csv'));
+// const replyPromise = scanIndex('replies');
+// replyPromise.then(dumpReplies).then(writeFile('replies.csv'));
+// replyPromise.then(dumpReplyHyperlinks).then(writeFile('reply_hyperlinks.csv'));
 
-scanIndex('replyrequests')
-  .then(dumpReplyRequests)
-  .then(writeFile('reply_requests.csv'));
+// scanIndex('replyrequests')
+//   .then(dumpReplyRequests)
+//   .then(writeFile('reply_requests.csv'));
 
-scanIndex('categories')
-  .then(dumpCategories)
-  .then(writeFile('categories.csv'));
+pipeline(scanIndex('categories'), dumpCategories, writeFile('categories.csv'));
 
-scanIndex('articlereplyfeedbacks')
-  .then(dumpArticleReplyFeedbacks)
-  .then(writeFile('article_reply_feedbacks.csv'));
+// scanIndex('articlereplyfeedbacks')
+//   .then(dumpArticleReplyFeedbacks)
+//   .then(writeFile('article_reply_feedbacks.csv'));
 
-scanIndex('analytics')
-  .then(dumpAnalytics)
-  .then(writeFile('analytics.csv'));
+// pipeline(scanIndex('analytics'), dumpAnalytics, writeFile('analytics.csv'));
