@@ -65,6 +65,9 @@ async function* scanIndex(index) {
     for (const hit of scrollResult.hits.hits) {
       processedCount += 1;
       yield hit;
+      if(processedCount % 100000 === 0) {
+        console.info(`${index}:\t${processedCount}/${totalCount}`);
+      }
     }
   }
 }
@@ -237,7 +240,6 @@ async function* dumpCategories(categories) {
   ]);
 
   for await (const { _id, _source } of categories) {
-
     yield csvStringify([
       [
         _id,
@@ -384,10 +386,10 @@ function writeFile(fileName) {
 //   .then(dumpReplyRequests)
 //   .then(writeFile('reply_requests.csv'));
 
-pipeline(scanIndex('categories'), dumpCategories, writeFile('categories.csv'));
+// pipeline(scanIndex('categories'), dumpCategories, writeFile('categories.csv'));
 
 // scanIndex('articlereplyfeedbacks')
 //   .then(dumpArticleReplyFeedbacks)
 //   .then(writeFile('article_reply_feedbacks.csv'));
 
-// pipeline(scanIndex('analytics'), dumpAnalytics, writeFile('analytics.csv'));
+pipeline(scanIndex('analytics'), dumpAnalytics, writeFile('analytics.csv'));
