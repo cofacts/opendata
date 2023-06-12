@@ -318,7 +318,7 @@ function dumpArticleReplyFeedbacks(articleReplyFeedbacks) {
  */
 async function* dumpAnalytics(analytics) {
   yield csvStringify([
-    ['type', 'docId', 'date', 'lineUser', 'lineVisit', 'webUser', 'webVisit'],
+    ['type', 'docId', 'date', 'lineUser', 'lineVisit', 'webUser', 'webVisit', 'liffUser', 'liffVisit'],
   ]);
 
   for await (const { _source } of analytics) {
@@ -331,6 +331,8 @@ async function* dumpAnalytics(analytics) {
         _source.stats.lineVisit,
         _source.stats.webUser,
         _source.stats.webVisit,
+        (_source.stats.liff || []).reduce((sum, {user}) => sum + user, 0),
+        (_source.stats.liff || []).reduce((sum, {visit}) => sum + visit, 0),
       ],
     ]);
   }
