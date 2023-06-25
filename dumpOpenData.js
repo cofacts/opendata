@@ -14,21 +14,6 @@ const client = new elasticsearch.Client({
 });
 
 /**
- * @param {any[][]} input
- * @returns {Promise<string>} CSV content
- */
-function generateCSV(input) {
-  return new Promise((resolve, reject) => {
-    csvStringify(input, (err, csvData) => {
-      if (err) {
-        return reject(err);
-      }
-      return resolve(csvData);
-    });
-  });
-}
-
-/**
  * @param {string} input
  * @returns {string} - input's sha256 hash hex string. Empty string if input is falsy.
  */
@@ -73,11 +58,11 @@ async function* scanIndex(index) {
 }
 
 /**
- * @param {object[]} articles
+ * @param {AsyncIterable} articles
  * @returns {Promise<string>} Generated CSV string
  */
-function dumpArticles(articles) {
-  return generateCSV([
+async function* dumpArticles(articles) {
+  yield csvStringify([
     [
       'id',
       'references', // array of strings
@@ -88,45 +73,54 @@ function dumpArticles(articles) {
       'createdAt',
       'updatedAt',
       'lastRequestedAt',
-    ],
-    ...articles.map(({ _id, _source }) => [
-      _id,
-      _source.references.map(ref => ref.type).join(','),
-      sha256(_source.userId),
-      _source.normalArticleReplyCount,
-      _source.appId,
-      _source.text,
-      _source.createdAt,
-      _source.updatedAt,
-      _source.lastRequestedAt,
-    ]),
+    ]
   ]);
-}
-
-/**
- * @param {object[]} articles
- * @returns {Promise<string>} Generated CSV string
- */
-function dumpArticleHyperlinks(articles) {
-  return generateCSV([
-    ['articleId', 'url', 'normalizedUrl', 'title'],
-    ...articles.flatMap(({ _id, _source }) =>
-      (_source.hyperlinks || []).map(hyperlink => [
+  for await (const { _source, _id } of articles) {
+    yield csvStringify([
+      [
         _id,
-        hyperlink.url,
-        hyperlink.normalizedUrl,
-        hyperlink.title,
-      ])
-    ),
-  ]);
+        _source.references.map(ref => ref.type).join(','),
+        sha256(_source.userId),
+        _source.normalArticleReplyCount,
+        _source.appId,
+        _source.text,
+        _source.createdAt,
+        _source.updatedAt,
+        _source.lastRequestedAt,
+      ]
+    ]);
+  };
 }
 
 /**
- * @param {object[]} articles
+ * @param {AsyncIterable} articles
  * @returns {Promise<string>} Generated CSV string
  */
-function dumpArticleCategories(articles) {
-  return generateCSV([
+async function* dumpArticleHyperlinks(articles) {
+  yield csvStringify([
+    ['articleId', 'url', 'normalizedUrl', 'title'],
+  ]);
+
+  for await (const { _source, _id } of articles) {
+    for(const hyperlink of _source.hyperlinks || []) {
+      yield csvStringify([
+        [
+          _id,
+          hyperlink.url,
+          hyperlink.normalizedUrl,
+          hyperlink.title,
+        ]
+      ]);
+    }
+  }
+}
+
+/**
+ * @param {AsyncIterable} articles
+ * @returns {Promise<string>} Generated CSV string
+ */
+async function* dumpArticleCategories(articles) {
+  yield csvStringify([
     [
       'articleId',
       'categoryId',
@@ -139,31 +133,36 @@ function dumpArticleCategories(articles) {
       'status',
       'createdAt',
       'updatedAt',
-    ],
-    ...articles.flatMap(({ _id, _source }) =>
-      (_source.articleCategories || []).map(ac => [
-        _id,
-        ac.categoryId,
-        ac.aiConfidence,
-        ac.aiModel,
-        sha256(ac.userId),
-        ac.appId,
-        ac.negativeFeedbackCount,
-        ac.positiveFeedbackCount,
-        ac.status,
-        ac.createdAt,
-        ac.updatedAt,
-      ])
-    ),
+    ]
   ]);
+
+  for await (const { _source, _id } of articles) {
+    for(const ac of _source.articleCategories || []) {
+      yield csvStringify([
+        [
+          _id,
+          ac.categoryId,
+          ac.aiConfidence,
+          ac.aiModel,
+          sha256(ac.userId),
+          ac.appId,
+          ac.negativeFeedbackCount,
+          ac.positiveFeedbackCount,
+          ac.status,
+          ac.createdAt,
+          ac.updatedAt,
+        ]
+      ]);
+    }
+  }
 }
 
 /**
- * @param {object[]} articles
+ * @param {AsyncIterator} articles
  * @returns {Promise<string>} Generated CSV string
  */
-function dumpArticleReplies(articles) {
-  return generateCSV([
+async function* dumpArticleReplies(articles) {
+  yield csvStringify([
     [
       'articleId',
       'replyId',
@@ -175,22 +174,27 @@ function dumpArticleReplies(articles) {
       'status',
       'createdAt',
       'updatedAt',
-    ],
-    ...articles.flatMap(({ _source: { articleReplies }, _id }) =>
-      (articleReplies || []).map(ar => [
-        _id,
-        ar.replyId,
-        sha256(ar.userId),
-        ar.negativeFeedbackCount,
-        ar.positiveFeedbackCount,
-        ar.replyType,
-        ar.appId,
-        ar.status,
-        ar.createdAt,
-        ar.updatedAt,
-      ])
-    ),
+    ]
   ]);
+
+  for await (const { _source, _id } of articles) {
+    for (const ar of _source.articleReplies || []) {
+      yield csvStringify([
+        [
+          _id,
+          ar.replyId,
+          sha256(ar.userId),
+          ar.negativeFeedbackCount,
+          ar.positiveFeedbackCount,
+          ar.replyType,
+          ar.appId,
+          ar.status,
+          ar.createdAt,
+          ar.updatedAt,
+        ]
+      ]);
+    }
+  }
 }
 
 /**
@@ -389,36 +393,30 @@ function writeFile(fileName) {
 /**
  * Main process
  */
-
-// const articlePromise = scanIndex('articles');
-// articlePromise.then(dumpArticles).then(writeFile('articles.csv'));
-// articlePromise.then(dumpArticleReplies).then(writeFile('article_replies.csv'));
-// articlePromise
-//   .then(dumpArticleHyperlinks)
-//   .then(writeFile('article_hyperlinks.csv'));
-// articlePromise
-//   .then(dumpArticleCategories)
-//   .then(writeFile('article_categories.csv'));
+pipeline(scanIndex('articles'), dumpArticles, writeFile('articles.csv'));
+pipeline(scanIndex('articles'), dumpArticleReplies, writeFile('article_replies.csv'));
+pipeline(scanIndex('articles'), dumpArticleHyperlinks, writeFile('article_hyperlinks.csv'));
+pipeline(scanIndex('articles'), dumpArticleCategories, writeFile('article_categories.csv'));
 
 pipeline(scanIndex('replies'), dumpReplies, writeFile('replies.csv'));
 pipeline(scanIndex('replies'), dumpReplyHyperlinks, writeFile('reply_hyperlinks.csv'));
 
-// pipeline(
-//   scanIndex('replyrequests'),
-//   dumpReplyRequests,
-//   writeFile('reply_requests.csv')
-// )
+pipeline(
+  scanIndex('replyrequests'),
+  dumpReplyRequests,
+  writeFile('reply_requests.csv')
+)
 
-// pipeline(scanIndex('categories'), dumpCategories, writeFile('categories.csv'));
+pipeline(scanIndex('categories'), dumpCategories, writeFile('categories.csv'));
 
-// pipeline(
-//   scanIndex('articlereplyfeedbacks'),
-//   dumpArticleReplyFeedbacks,
-//   writeFile('article_reply_feedbacks.csv')
-// );
+pipeline(
+  scanIndex('articlereplyfeedbacks'),
+  dumpArticleReplyFeedbacks,
+  writeFile('article_reply_feedbacks.csv')
+);
 
-// pipeline(
-//   scanIndex('analytics'),
-//   dumpAnalytics,
-//   writeFile('analytics.csv')
-// );
+pipeline(
+  scanIndex('analytics'),
+  dumpAnalytics,
+  writeFile('analytics.csv')
+);
