@@ -289,8 +289,8 @@ function dumpReplyRequests(replyRequests) {
  * @param {object[]} articleReplyFeedbacks
  * @returns {Promise<string>} Generated CSV string
  */
-function dumpArticleReplyFeedbacks(articleReplyFeedbacks) {
-  return generateCSV([
+async function* dumpArticleReplyFeedbacks(articleReplyFeedbacks) {
+  yield csvStringify([
     [
       'articleId',
       'replyId',
@@ -300,16 +300,21 @@ function dumpArticleReplyFeedbacks(articleReplyFeedbacks) {
       'appId',
       'createdAt',
     ],
-    ...articleReplyFeedbacks.map(({ _source }) => [
-      _source.articleId,
-      _source.replyId,
-      _source.score,
-      _source.comment,
-      sha256(_source.userId),
-      _source.appId,
-      _source.createdAt,
-    ]),
   ]);
+
+  for await (const { _source } of articleReplyFeedbacks) {
+    yield csvStringify([
+      [
+        _source.articleId,
+        _source.replyId,
+        _source.score,
+        _source.comment,
+        sha256(_source.userId),
+        _source.appId,
+        _source.createdAt,
+      ]
+    ]);
+  }
 }
 
 /**
@@ -390,8 +395,14 @@ function writeFile(fileName) {
 
 // pipeline(scanIndex('categories'), dumpCategories, writeFile('categories.csv'));
 
-// scanIndex('articlereplyfeedbacks')
-//   .then(dumpArticleReplyFeedbacks)
-//   .then(writeFile('article_reply_feedbacks.csv'));
+// pipeline(
+//   scanIndex('articlereplyfeedbacks'),
+//   dumpArticleReplyFeedbacks,
+//   writeFile('article_reply_feedbacks.csv')
+// );
 
-pipeline(scanIndex('analytics'), dumpAnalytics, writeFile('analytics.csv'));
+// pipeline(
+//   scanIndex('analytics'),
+//   dumpAnalytics,
+//   writeFile('analytics.csv')
+// );
