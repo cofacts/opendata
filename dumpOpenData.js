@@ -194,40 +194,50 @@ function dumpArticleReplies(articles) {
 }
 
 /**
- * @param {object[]} replies
+ * @param {AsyncIterable} replies
  * @returns {Promise<string>} Generated CSV string
  */
-async function dumpReplies(replies) {
-  return generateCSV([
+async function* dumpReplies(replies) {
+  yield csvStringify([
     ['id', 'type', 'reference', 'userIdsha256', 'appId', 'text', 'createdAt'],
-    ...replies.map(({ _source, _id }) => [
-      _id,
-      _source.type,
-      _source.reference,
-      sha256(_source.userId),
-      _source.appId,
-      _source.text,
-      _source.createdAt,
-    ]),
   ]);
+
+  for await (const { _source, _id } of replies) {
+    yield csvStringify([
+      [
+        _id,
+        _source.type,
+        _source.reference,
+        sha256(_source.userId),
+        _source.appId,
+        _source.text,
+        _source.createdAt,
+      ]
+    ]);
+  }
 }
 
 /**
- * @param {object[]} replies
+ * @param {AsyncIterable} replies
  * @returns {Promise<string>} Generated CSV string
  */
-function dumpReplyHyperlinks(replies) {
-  return generateCSV([
-    ['replyId', 'url', 'normalizedUrl', 'title'],
-    ...replies.flatMap(({ _id, _source }) =>
-      (_source.hyperlinks || []).map(hyperlink => [
-        _id,
-        hyperlink.url,
-        hyperlink.normalizedUrl,
-        hyperlink.title,
-      ])
-    ),
+async function* dumpReplyHyperlinks(replies) {
+  yield csvStringify([
+    ['replyId', 'url', 'normalizedUrl', 'title']
   ]);
+
+  for await (const { _source, _id } of replies) {
+    for (const hyperlink of _source.hyperlinks || []) {
+      yield csvStringify([
+        [
+          _id,
+          hyperlink.url,
+          hyperlink.normalizedUrl,
+          hyperlink.title,
+        ]
+      ]);
+    }
+  }
 }
 
 /**
@@ -390,15 +400,14 @@ function writeFile(fileName) {
 //   .then(dumpArticleCategories)
 //   .then(writeFile('article_categories.csv'));
 
-// const replyPromise = scanIndex('replies');
-// replyPromise.then(dumpReplies).then(writeFile('replies.csv'));
-// replyPromise.then(dumpReplyHyperlinks).then(writeFile('reply_hyperlinks.csv'));
+pipeline(scanIndex('replies'), dumpReplies, writeFile('replies.csv'));
+pipeline(scanIndex('replies'), dumpReplyHyperlinks, writeFile('reply_hyperlinks.csv'));
 
-pipeline(
-  scanIndex('replyrequests'),
-  dumpReplyRequests,
-  writeFile('reply_requests.csv')
-)
+// pipeline(
+//   scanIndex('replyrequests'),
+//   dumpReplyRequests,
+//   writeFile('reply_requests.csv')
+// )
 
 // pipeline(scanIndex('categories'), dumpCategories, writeFile('categories.csv'));
 
