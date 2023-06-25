@@ -253,11 +253,11 @@ async function* dumpCategories(categories) {
 }
 
 /**
- * @param {object[]} replyRequests
+ * @param {AsyncIterable} replyRequests
  * @returns {Promise<string>} Generated CSV string
  */
-function dumpReplyRequests(replyRequests) {
-  return generateCSV([
+async function* dumpReplyRequests(replyRequests) {
+  yield csvStringify([
     [
       'articleId',
       'reason',
@@ -266,27 +266,32 @@ function dumpReplyRequests(replyRequests) {
       'userIdsha256',
       'appId',
       'createdAt',
-    ],
-    ...replyRequests.map(({ _source }) => [
-      _source.articleId,
-      _source.reason,
-      (_source.feedbacks || []).reduce((sum, { score }) => {
-        if (score === 1) sum += 1;
-        return sum;
-      }, 0),
-      (_source.feedbacks || []).reduce((sum, { score }) => {
-        if (score === -1) sum += 1;
-        return sum;
-      }, 0),
-      sha256(_source.userId),
-      _source.appId,
-      _source.createdAt,
-    ]),
+    ]
   ]);
+
+  for await (const { _source } of replyRequests) {
+    yield csvStringify([
+      [
+        _source.articleId,
+        _source.reason,
+        (_source.feedbacks || []).reduce((sum, { score }) => {
+          if (score === 1) sum += 1;
+          return sum;
+        }, 0),
+        (_source.feedbacks || []).reduce((sum, { score }) => {
+          if (score === -1) sum += 1;
+          return sum;
+        }, 0),
+        sha256(_source.userId),
+        _source.appId,
+        _source.createdAt,
+      ]
+    ]);
+  }
 }
 
 /**
- * @param {object[]} articleReplyFeedbacks
+ * @param {AsyncIterable} articleReplyFeedbacks
  * @returns {Promise<string>} Generated CSV string
  */
 async function* dumpArticleReplyFeedbacks(articleReplyFeedbacks) {
@@ -389,9 +394,11 @@ function writeFile(fileName) {
 // replyPromise.then(dumpReplies).then(writeFile('replies.csv'));
 // replyPromise.then(dumpReplyHyperlinks).then(writeFile('reply_hyperlinks.csv'));
 
-// scanIndex('replyrequests')
-//   .then(dumpReplyRequests)
-//   .then(writeFile('reply_requests.csv'));
+pipeline(
+  scanIndex('replyrequests'),
+  dumpReplyRequests,
+  writeFile('reply_requests.csv')
+)
 
 // pipeline(scanIndex('categories'), dumpCategories, writeFile('categories.csv'));
 
