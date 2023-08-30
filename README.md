@@ -212,6 +212,8 @@ LINE bot data starts from April 2nd, 2018; website data starts from May 3rd, 201
 | `lineVisit` | Integer         | The number of times this article / reply is inspected in Cofacts LINE bot in this date. May be empty if no visits |
 | `webUser`   | Integer         | The number of web users who visited this article page (`/article/<docId>`) / reply page (`/reply/<docId>`) in Cofacts website in this date. May be empty if no such users |
 | `webVisit`  | Integer         | The number of page views of this article page (`/article/<docId>`) / reply page (`/reply/<docId>`) in Cofacts website in this date. May be empty if no page views |
+| `liffUser`  | Integer         | The sum of LINE users who opened this article / reply in LIFF used by downstream chatbots in this date. May be empty if no such users |
+| `liffVisit` | Integer         | The sum of times this article / reply's LIFF is opened in downstream chatbots in this date. May be empty if no visits |
 
 ## ⚠ [NOTICE] Caveats of using this data ⚠
 
