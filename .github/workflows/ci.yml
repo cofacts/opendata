@@ -28,6 +28,8 @@ jobs:
       - run: npm ci
       - name: Initialize DB indexes
         run: npm run schema
+        env:
+          ELASTICSEARCH_URL: http://localhost:62223
       - name: Checkout opendata repo
         uses: actions/checkout@v2
       - run: npm ci
