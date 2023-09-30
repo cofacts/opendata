@@ -4,10 +4,7 @@
 
 We generate the opendata files by backing up production DB to local machine, then run this script on local machine.
 
-According to [rumors-deploy](https://github.com/cofacts/rumors-deploy/), the production DB raw data
-should be available in `rumors-deploy/volumes/db-production`. (Staging is in `db-staging` instead).
-
-To backup production DB, Just tar the `rumors-deploy/volumes/db-production`, download to local machine, extract the tar file and put it in `esdata` directory of this project's root. `esdata` should contain only `nodes` directory now.
+### Spin up ElasticSearch on local environment.
 
 Run this to spin up a local elasticsearch for the backed up file
 
@@ -15,8 +12,7 @@ Run this to spin up a local elasticsearch for the backed up file
 $ docker-compose up
 ```
 
-This spins up elasticsearch on `localhost:62223`, with Kibana available in `localhost:62224`, using the data in `esdata`.
-
+This spins up elasticsearch on `localhost:62223`, with Kibana available in `localhost:62224`.
 Lastly, run this to generate files to `data/` directory:
 
 ```
@@ -25,11 +21,8 @@ $ npm start
 
 ### Restore production backup from Cofacts' Google Cloud Storage bucket
 
-For Cofacts production website, the `nodes` directly is too large to backup using simple zip files.
-Actually we use [Elasticsearch snapshots](https://www.elastic.co/guide/en/elasticsearch/reference/6.8/modules-snapshots.html)
+We use [Elasticsearch snapshots](https://www.elastic.co/guide/en/elasticsearch/reference/6.8/modules-snapshots.html)
 and [Google Cloud Storage Repository plugin](https://www.elastic.co/guide/en/elasticsearch/plugins/6.8/repository-gcs.html) to perform backup and restore regularly.
-
-Below is the steps setting up GCS repository and read backups from Google Cloud Storage.
 
 #### First-time setup
 
