@@ -16,14 +16,15 @@ jobs:
         ports:
           - 62223:9200
     steps:
-      - uses: actions/setup-node@v2
-        with:
-          node-version: '18'
-          cache: 'npm'
+
       - name: Checkout rumors-db
         uses: actions/checkout@v2
         with:
           repository: 'cofacts/rumors-db'
+      - uses: actions/setup-node@v2
+        with:
+          node-version: '18'
+          cache: 'npm'
       - run: npm ci
       - name: Initialize DB indexes
         run: npm start
