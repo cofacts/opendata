@@ -16,11 +16,19 @@ jobs:
         ports:
           - 62223:9200
     steps:
-      - uses: actions/checkout@v2
       - uses: actions/setup-node@v2
         with:
           node-version: '18'
           cache: 'npm'
+      - name: Checkout rumors-db
+        uses: actions/checkout@v2
+        with:
+          repository: 'cofacts/rumors-db'
+      - run: npm ci
+      - name: Initialize DB indexes
+        run: npm start
+      - name: Checkout opendata repo
+        uses: actions/checkout@v2
       - run: npm ci
       - run: npm run lint
       - name: Test if script can generate csv files from empty database
