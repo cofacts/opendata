@@ -13,11 +13,6 @@ $ docker-compose up
 ```
 
 This spins up elasticsearch on `localhost:62223`, with Kibana available in `localhost:62224`.
-Lastly, run this to generate files to `data/` directory:
-
-```
-$ npm start
-```
 
 ### Restore production backup from Cofacts' Google Cloud Storage bucket
 
@@ -97,3 +92,5 @@ GET /_recovery?human&filter_path=*.shards.stage,*.shards.index.size.percent
 
 ### Generate CSV files
 After all indices are restored, run `npm start` in CLI to generate opendata files.
+
+All files are written to `/data` directory in `*.csv.zip`.
