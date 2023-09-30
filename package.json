@@ -5,6 +5,7 @@
   "description": "Open data for cofacts",
   "main": "dumpOpenData.js",
   "scripts": {
+    "prestart": "mkdir -p data",
     "start": "node dumpOpenData",
     "lint": "eslint .",
     "lint:fix": "eslint --fix .",
