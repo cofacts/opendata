@@ -1,0 +1,39 @@
+name: CI test
+
+on:
+  # Triggers the workflow on push or pull request events
+  - pull_request
+  - push
+  # Allows you to run this workflow manually from the Actions tab
+  - workflow_dispatch
+
+jobs:
+  install-and-test:
+    runs-on: ubuntu-latest
+    services:
+      rumors-test-db:
+        image: docker.elastic.co/elasticsearch/elasticsearch-oss:6.3.2
+        ports:
+          - 62223:9200
+    steps:
+
+      - name: Checkout rumors-db
+        uses: actions/checkout@v2
+        with:
+          repository: 'cofacts/rumors-db'
+      - uses: actions/setup-node@v2
+        with:
+          node-version: '18'
+          cache: 'npm'
+      - run: npm ci
+      - name: Initialize DB indexes
+        run: npm run schema
+        env:
+          ELASTICSEARCH_URL: http://localhost:62223
+      - name: Checkout opendata repo
+        uses: actions/checkout@v2
+      - run: npm ci
+      - run: npm run lint
+      - name: Test if script can generate csv files from empty database
+        run: npm start
+      - run: ls data/

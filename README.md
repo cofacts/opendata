@@ -1,7 +1,7 @@
 【Cofacts 真的假的】Open Datasets
 =====
 
-[![Build Status](https://travis-ci.org/cofacts/opendata.svg?branch=master)](https://travis-ci.org/cofacts/opendata)
+[![CI test](https://github.com/cofacts/opendata/actions/workflows/ci.yml/badge.svg)](https://github.com/cofacts/opendata/actions/workflows/ci.yml)
 
 We publish Cofacts data as Hugging Face dataset [`Cofacts/line-msg-fact-check-tw`](https://huggingface.co/datasets/Cofacts/line-msg-fact-check-tw). Application of Cofacts data has also been moved to Hugging Face.
 

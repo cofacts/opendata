@@ -3,6 +3,9 @@ import { pipeline } from 'stream/promises';
 import { Readable } from 'stream';
 import crypto from 'crypto';
 import elasticsearch from '@elastic/elasticsearch';
+
+// eslint-import-resolve does not support `exports` in package.json.
+// eslint-disable-next-line import/no-unresolved
 import { stringify as csvStringify } from 'csv-stringify/sync';
 import JSZip from 'jszip';
 
@@ -19,10 +22,7 @@ const client = new elasticsearch.Client({
  */
 function sha256(input) {
   return input
-    ? crypto
-        .createHash('sha256')
-        .update(input, 'utf8')
-        .digest('hex')
+    ? crypto.createHash('sha256').update(input, 'utf8').digest('hex')
     : '';
 }
 
@@ -50,7 +50,7 @@ async function* scanIndex(index) {
     for (const hit of scrollResult.hits.hits) {
       processedCount += 1;
       yield hit;
-      if(processedCount % 100000 === 0) {
+      if (processedCount % 100000 === 0) {
         console.info(`${index}:\t${processedCount}/${totalCount}`);
       }
     }
@@ -73,13 +73,13 @@ async function* dumpArticles(articles) {
       'createdAt',
       'updatedAt',
       'lastRequestedAt',
-    ]
+    ],
   ]);
   for await (const { _source, _id } of articles) {
     yield csvStringify([
       [
         _id,
-        _source.references.map(ref => ref.type).join(','),
+        _source.references.map((ref) => ref.type).join(','),
         sha256(_source.userId),
         _source.normalArticleReplyCount,
         _source.appId,
@@ -87,9 +87,9 @@ async function* dumpArticles(articles) {
         _source.createdAt,
         _source.updatedAt,
         _source.lastRequestedAt,
-      ]
+      ],
     ]);
-  };
+  }
 }
 
 /**
@@ -97,19 +97,12 @@ async function* dumpArticles(articles) {
  * @returns {Promise<string>} Generated CSV string
  */
 async function* dumpArticleHyperlinks(articles) {
-  yield csvStringify([
-    ['articleId', 'url', 'normalizedUrl', 'title'],
-  ]);
+  yield csvStringify([['articleId', 'url', 'normalizedUrl', 'title']]);
 
   for await (const { _source, _id } of articles) {
-    for(const hyperlink of _source.hyperlinks || []) {
+    for (const hyperlink of _source.hyperlinks || []) {
       yield csvStringify([
-        [
-          _id,
-          hyperlink.url,
-          hyperlink.normalizedUrl,
-          hyperlink.title,
-        ]
+        [_id, hyperlink.url, hyperlink.normalizedUrl, hyperlink.title],
       ]);
     }
   }
@@ -133,11 +126,11 @@ async function* dumpArticleCategories(articles) {
       'status',
       'createdAt',
       'updatedAt',
-    ]
+    ],
   ]);
 
   for await (const { _source, _id } of articles) {
-    for(const ac of _source.articleCategories || []) {
+    for (const ac of _source.articleCategories || []) {
       yield csvStringify([
         [
           _id,
@@ -151,7 +144,7 @@ async function* dumpArticleCategories(articles) {
           ac.status,
           ac.createdAt,
           ac.updatedAt,
-        ]
+        ],
       ]);
     }
   }
@@ -174,7 +167,7 @@ async function* dumpArticleReplies(articles) {
       'status',
       'createdAt',
       'updatedAt',
-    ]
+    ],
   ]);
 
   for await (const { _source, _id } of articles) {
@@ -191,7 +184,7 @@ async function* dumpArticleReplies(articles) {
           ar.status,
           ar.createdAt,
           ar.updatedAt,
-        ]
+        ],
       ]);
     }
   }
@@ -216,7 +209,7 @@ async function* dumpReplies(replies) {
         _source.appId,
         _source.text,
         _source.createdAt,
-      ]
+      ],
     ]);
   }
 }
@@ -226,19 +219,12 @@ async function* dumpReplies(replies) {
  * @returns {Promise<string>} Generated CSV string
  */
 async function* dumpReplyHyperlinks(replies) {
-  yield csvStringify([
-    ['replyId', 'url', 'normalizedUrl', 'title']
-  ]);
+  yield csvStringify([['replyId', 'url', 'normalizedUrl', 'title']]);
 
   for await (const { _source, _id } of replies) {
     for (const hyperlink of _source.hyperlinks || []) {
       yield csvStringify([
-        [
-          _id,
-          hyperlink.url,
-          hyperlink.normalizedUrl,
-          hyperlink.title,
-        ]
+        [_id, hyperlink.url, hyperlink.normalizedUrl, hyperlink.title],
       ]);
     }
   }
@@ -280,7 +266,7 @@ async function* dumpReplyRequests(replyRequests) {
       'userIdsha256',
       'appId',
       'createdAt',
-    ]
+    ],
   ]);
 
   for await (const { _source } of replyRequests) {
@@ -299,7 +285,7 @@ async function* dumpReplyRequests(replyRequests) {
         sha256(_source.userId),
         _source.appId,
         _source.createdAt,
-      ]
+      ],
     ]);
   }
 }
@@ -331,7 +317,7 @@ async function* dumpArticleReplyFeedbacks(articleReplyFeedbacks) {
         sha256(_source.userId),
         _source.appId,
         _source.createdAt,
-      ]
+      ],
     ]);
   }
 }
@@ -342,7 +328,17 @@ async function* dumpArticleReplyFeedbacks(articleReplyFeedbacks) {
  */
 async function* dumpAnalytics(analytics) {
   yield csvStringify([
-    ['type', 'docId', 'date', 'lineUser', 'lineVisit', 'webUser', 'webVisit', 'liffUser', 'liffVisit'],
+    [
+      'type',
+      'docId',
+      'date',
+      'lineUser',
+      'lineVisit',
+      'webUser',
+      'webVisit',
+      'liffUser',
+      'liffVisit',
+    ],
   ]);
 
   for await (const { _source } of analytics) {
@@ -355,8 +351,8 @@ async function* dumpAnalytics(analytics) {
         _source.stats.lineVisit,
         _source.stats.webUser,
         _source.stats.webVisit,
-        (_source.stats.liff || []).reduce((sum, {user}) => sum + user, 0),
-        (_source.stats.liff || []).reduce((sum, {visit}) => sum + visit, 0),
+        (_source.stats.liff || []).reduce((sum, { user }) => sum + user, 0),
+        (_source.stats.liff || []).reduce((sum, { visit }) => sum + visit, 0),
       ],
     ]);
   }
@@ -367,11 +363,11 @@ async function* dumpAnalytics(analytics) {
  * @returns {(source: AsyncIterable) => void}
  */
 function writeFile(fileName) {
-  return source => {
+  return (source) => {
     const zip = new JSZip();
-    zip.file(fileName, Readable.from(source), {binary: false});
+    zip.file(fileName, Readable.from(source), { binary: false });
 
-    return new Promise(resolve => {
+    return new Promise((resolve) => {
       // Ref: https://stuk.github.io/jszip/documentation/howto/write_zip.html#in-nodejs
       //
       zip
@@ -394,18 +390,34 @@ function writeFile(fileName) {
  * Main process
  */
 pipeline(scanIndex('articles'), dumpArticles, writeFile('articles.csv'));
-pipeline(scanIndex('articles'), dumpArticleReplies, writeFile('article_replies.csv'));
-pipeline(scanIndex('articles'), dumpArticleHyperlinks, writeFile('article_hyperlinks.csv'));
-pipeline(scanIndex('articles'), dumpArticleCategories, writeFile('article_categories.csv'));
+pipeline(
+  scanIndex('articles'),
+  dumpArticleReplies,
+  writeFile('article_replies.csv')
+);
+pipeline(
+  scanIndex('articles'),
+  dumpArticleHyperlinks,
+  writeFile('article_hyperlinks.csv')
+);
+pipeline(
+  scanIndex('articles'),
+  dumpArticleCategories,
+  writeFile('article_categories.csv')
+);
 
 pipeline(scanIndex('replies'), dumpReplies, writeFile('replies.csv'));
-pipeline(scanIndex('replies'), dumpReplyHyperlinks, writeFile('reply_hyperlinks.csv'));
+pipeline(
+  scanIndex('replies'),
+  dumpReplyHyperlinks,
+  writeFile('reply_hyperlinks.csv')
+);
 
 pipeline(
   scanIndex('replyrequests'),
   dumpReplyRequests,
   writeFile('reply_requests.csv')
-)
+);
 
 pipeline(scanIndex('categories'), dumpCategories, writeFile('categories.csv'));
 
@@ -415,8 +427,4 @@ pipeline(
   writeFile('article_reply_feedbacks.csv')
 );
 
-pipeline(
-  scanIndex('analytics'),
-  dumpAnalytics,
-  writeFile('analytics.csv')
-);
+pipeline(scanIndex('analytics'), dumpAnalytics, writeFile('analytics.csv'));
