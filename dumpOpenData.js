@@ -65,28 +65,32 @@ async function* dumpArticles(articles) {
   yield csvStringify([
     [
       'id',
-      'references', // array of strings
-      'userIdsha256',
-      'normalArticleReplyCount',
-      'appId',
+      'articleType',
+      'status',
       'text',
+      'normalArticleReplyCount',
       'createdAt',
       'updatedAt',
       'lastRequestedAt',
+      'userIdsha256',
+      'appId',
+      'references', // array of strings
     ],
   ]);
   for await (const { _source, _id } of articles) {
     yield csvStringify([
       [
         _id,
-        _source.references.map((ref) => ref.type).join(','),
-        sha256(_source.userId),
-        _source.normalArticleReplyCount,
-        _source.appId,
+        _source.articleType,
+        _source.status,
         _source.text,
+        _source.normalArticleReplyCount,
         _source.createdAt,
         _source.updatedAt,
         _source.lastRequestedAt,
+        sha256(_source.userId),
+        _source.appId,
+        _source.references.map((ref) => ref.type).join(','),
       ],
     ]);
   }
@@ -163,6 +167,7 @@ async function* dumpArticleReplies(articles) {
       'negativeFeedbackCount',
       'positiveFeedbackCount',
       'replyType',
+      'status',
       'appId',
       'status',
       'createdAt',
@@ -180,6 +185,7 @@ async function* dumpArticleReplies(articles) {
           ar.negativeFeedbackCount,
           ar.positiveFeedbackCount,
           ar.replyType,
+          ar.status,
           ar.appId,
           ar.status,
           ar.createdAt,
@@ -261,6 +267,7 @@ async function* dumpReplyRequests(replyRequests) {
     [
       'articleId',
       'reason',
+      'status',
       'positiveFeedbackCount',
       'negativeFeedbackCount',
       'userIdsha256',
@@ -274,6 +281,7 @@ async function* dumpReplyRequests(replyRequests) {
       [
         _source.articleId,
         _source.reason,
+        _source.status,
         (_source.feedbacks || []).reduce((sum, { score }) => {
           if (score === 1) sum += 1;
           return sum;
@@ -301,6 +309,7 @@ async function* dumpArticleReplyFeedbacks(articleReplyFeedbacks) {
       'replyId',
       'score',
       'comment',
+      'status',
       'userIdsha256',
       'appId',
       'createdAt',
@@ -314,6 +323,7 @@ async function* dumpArticleReplyFeedbacks(articleReplyFeedbacks) {
         _source.replyId,
         _source.score,
         _source.comment,
+        _source.status,
         sha256(_source.userId),
         _source.appId,
         _source.createdAt,
@@ -353,6 +363,28 @@ async function* dumpAnalytics(analytics) {
         _source.stats.webVisit,
         (_source.stats.liff || []).reduce((sum, { user }) => sum + user, 0),
         (_source.stats.liff || []).reduce((sum, { visit }) => sum + visit, 0),
+      ],
+    ]);
+  }
+}
+
+/**
+ * @param {AsyncIterable} users
+ * @returns {Promise<string>} Generated CSV string
+ */
+async function* dumpUsers(users) {
+  yield csvStringify([
+    ['userIdsha256', 'appId', 'createdAt', 'lastActiveAt', 'blockedReason'],
+  ]);
+
+  for await (const { _id, _source } of users) {
+    yield csvStringify([
+      [
+        sha256(_id),
+        _source.appId,
+        _source.createdAt,
+        _source.lastActiveAt,
+        _source.blockedReason,
       ],
     ]);
   }
@@ -428,3 +460,4 @@ pipeline(
 );
 
 pipeline(scanIndex('analytics'), dumpAnalytics, writeFile('analytics.csv'));
+pipeline(scanIndex('users'), dumpUsers, writeFile('anonymized_users.csv'));
