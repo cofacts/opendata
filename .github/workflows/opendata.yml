@@ -1,0 +1,93 @@
+name: Generate Open Data
+
+on:
+  workflow_dispatch:
+
+jobs:
+  generate-opendata:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+
+      - name: Prepare directory and secrets
+        run: |
+          mkdir -p esdata
+          echo "$GCS_CREDENTIALS" > esdata/gcs.json
+          chmod 644 esdata/gcs.json
+          # Ensure esdata is writable by container user (uid 1000) just in case
+          sudo chown -R 1000:1000 esdata
+        env:
+          GCS_CREDENTIALS: ${{ secrets.GCS_CREDENTIALS }}
+
+      - name: Start Elasticsearch
+        run: docker-compose up -d elasticsearch
+
+      - name: Wait for Elasticsearch
+        run: |
+          timeout 60 bash -c 'until curl -s http://localhost:62223/_cat/health > /dev/null; do sleep 5; done'
+
+      - name: Install GCS Plugin & Keystore
+        run: |
+          docker-compose exec -T elasticsearch bin/elasticsearch-plugin install -b repository-gcs
+          docker-compose exec -T elasticsearch bin/elasticsearch-keystore add-file gcs.client.default.credentials_file data/gcs.json
+
+      - name: Restart Elasticsearch
+        run: docker-compose restart elasticsearch
+
+      - name: Wait for Elasticsearch again
+        run: |
+          timeout 60 bash -c 'until curl -s http://localhost:62223/_cat/health > /dev/null; do sleep 5; done'
+
+      - name: Register GCS Repository
+        run: |
+          curl -s -X PUT "http://localhost:62223/_snapshot/cofacts" -H 'Content-Type: application/json' -d '{
+            "type": "gcs",
+            "settings": {
+              "bucket": "rumors-db",
+              "readonly": true
+            }
+          }'
+
+      - name: Find Latest Snapshot
+        id: find-snapshot
+        run: |
+          SNAPSHOTS=$(curl -s "http://localhost:62223/_snapshot/cofacts/_all?verbose=true")
+          # Sort by start_time_in_millis and get the last one
+          LATEST_SNAPSHOT=$(echo "$SNAPSHOTS" | jq -r '.snapshots | sort_by(.start_time_in_millis) | last | .snapshot')
+          echo "Latest snapshot: $LATEST_SNAPSHOT"
+          echo "snapshot=$LATEST_SNAPSHOT" >> $GITHUB_OUTPUT
+
+      - name: Restore Snapshot
+        run: |
+          SNAPSHOT_NAME=${{ steps.find-snapshot.outputs.snapshot }}
+          if [ -z "$SNAPSHOT_NAME" ] || [ "$SNAPSHOT_NAME" == "null" ]; then
+            echo "Error: No snapshot found or failed to parse"
+            exit 1
+          fi
+          echo "Restoring $SNAPSHOT_NAME..."
+
+          # Delete all indices first
+          curl -s -X DELETE "http://localhost:62223/_all"
+
+          # Restore with wait_for_completion=true
+          curl -s -X POST "http://localhost:62223/_snapshot/cofacts/$SNAPSHOT_NAME/_restore?wait_for_completion=true" -H 'Content-Type: application/json' -d '{
+            "indices": "*,-urls*"
+          }'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Generate CSVs
+        run: npm start
+
+      - name: Upload Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: opendata-csvs
+          path: data/*.zip
