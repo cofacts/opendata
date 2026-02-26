@@ -6,6 +6,19 @@ on:
 jobs:
   generate-opendata:
     runs-on: ubuntu-latest
+    services:
+      elasticsearch:
+        image: docker.elastic.co/elasticsearch/elasticsearch-oss:6.3.2
+        ports:
+          - 62223:9200
+        env:
+          discovery.type: single-node
+        options: >-
+          --health-cmd "curl http://localhost:9200/_cat/health"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 10
+
     steps:
       - uses: actions/checkout@v4
 
@@ -20,27 +33,37 @@ jobs:
           mkdir -p esdata
           echo "$GCS_CREDENTIALS" > esdata/gcs.json
           chmod 644 esdata/gcs.json
-          # Ensure esdata is writable by container user (uid 1000) just in case
-          sudo chown -R 1000:1000 esdata
         env:
           GCS_CREDENTIALS: ${{ secrets.GCS_CREDENTIALS }}
 
-      - name: Start Elasticsearch
-        run: docker compose up -d elasticsearch
-
-      - name: Wait for Elasticsearch
-        run: |
-          timeout 60 bash -c 'until curl -s http://localhost:62223/_cat/health > /dev/null; do sleep 5; done'
-
       - name: Install GCS Plugin & Keystore
         run: |
-          docker compose exec -T elasticsearch bin/elasticsearch-plugin install -b repository-gcs
-          docker compose exec -T elasticsearch bin/elasticsearch-keystore add-file gcs.client.default.credentials_file data/gcs.json
+          # Find the container ID
+          CONTAINER_ID=$(docker ps --filter "ancestor=docker.elastic.co/elasticsearch/elasticsearch-oss:6.3.2" --format "{{.ID}}")
+          echo "Elasticsearch container ID: $CONTAINER_ID"
 
-      - name: Restart Elasticsearch
-        run: docker compose restart elasticsearch
+          if [ -z "$CONTAINER_ID" ]; then
+            echo "Error: Elasticsearch container not found"
+            exit 1
+          fi
 
-      - name: Wait for Elasticsearch again
+          # Install plugin
+          docker exec $CONTAINER_ID bin/elasticsearch-plugin install -b repository-gcs
+
+          # Add credentials to keystore
+          # Copy credentials file into container
+          docker cp esdata/gcs.json $CONTAINER_ID:/usr/share/elasticsearch/config/gcs.json
+
+          # Add to keystore
+          docker exec $CONTAINER_ID bin/elasticsearch-keystore add-file gcs.client.default.credentials_file /usr/share/elasticsearch/config/gcs.json
+
+          # Clean up credentials file inside container
+          docker exec $CONTAINER_ID rm /usr/share/elasticsearch/config/gcs.json
+
+          # Restart container to load plugin
+          docker restart $CONTAINER_ID
+
+      - name: Wait for Elasticsearch
         run: |
           timeout 60 bash -c 'until curl -s http://localhost:62223/_cat/health > /dev/null; do sleep 5; done'
 
