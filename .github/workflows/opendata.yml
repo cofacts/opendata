@@ -26,7 +26,7 @@ jobs:
           GCS_CREDENTIALS: ${{ secrets.GCS_CREDENTIALS }}
 
       - name: Start Elasticsearch
-        run: docker-compose up -d elasticsearch
+        run: docker compose up -d elasticsearch
 
       - name: Wait for Elasticsearch
         run: |
@@ -34,11 +34,11 @@ jobs:
 
       - name: Install GCS Plugin & Keystore
         run: |
-          docker-compose exec -T elasticsearch bin/elasticsearch-plugin install -b repository-gcs
-          docker-compose exec -T elasticsearch bin/elasticsearch-keystore add-file gcs.client.default.credentials_file data/gcs.json
+          docker compose exec -T elasticsearch bin/elasticsearch-plugin install -b repository-gcs
+          docker compose exec -T elasticsearch bin/elasticsearch-keystore add-file gcs.client.default.credentials_file data/gcs.json
 
       - name: Restart Elasticsearch
-        run: docker-compose restart elasticsearch
+        run: docker compose restart elasticsearch
 
       - name: Wait for Elasticsearch again
         run: |
