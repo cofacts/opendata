@@ -1,0 +1,116 @@
+name: Generate Open Data
+
+on:
+  workflow_dispatch:
+
+jobs:
+  generate-opendata:
+    runs-on: ubuntu-latest
+    services:
+      elasticsearch:
+        image: docker.elastic.co/elasticsearch/elasticsearch-oss:6.3.2
+        ports:
+          - 62223:9200
+        env:
+          discovery.type: single-node
+        options: >-
+          --health-cmd "curl http://localhost:9200/_cat/health"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 10
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+
+      - name: Prepare directory and secrets
+        run: |
+          mkdir -p esdata
+          echo "$GCS_CREDENTIALS" > esdata/gcs.json
+          chmod 644 esdata/gcs.json
+        env:
+          GCS_CREDENTIALS: ${{ secrets.GCS_CREDENTIALS }}
+
+      - name: Install GCS Plugin & Keystore
+        run: |
+          # Find the container ID
+          CONTAINER_ID=$(docker ps --filter "ancestor=docker.elastic.co/elasticsearch/elasticsearch-oss:6.3.2" --format "{{.ID}}")
+          echo "Elasticsearch container ID: $CONTAINER_ID"
+
+          if [ -z "$CONTAINER_ID" ]; then
+            echo "Error: Elasticsearch container not found"
+            exit 1
+          fi
+
+          # Install plugin
+          docker exec $CONTAINER_ID bin/elasticsearch-plugin install -b repository-gcs
+
+          # Add credentials to keystore
+          # Copy credentials file into container
+          docker cp esdata/gcs.json $CONTAINER_ID:/usr/share/elasticsearch/config/gcs.json
+
+          # Add to keystore
+          docker exec $CONTAINER_ID bin/elasticsearch-keystore add-file gcs.client.default.credentials_file /usr/share/elasticsearch/config/gcs.json
+
+          # Clean up credentials file inside container
+          docker exec $CONTAINER_ID rm /usr/share/elasticsearch/config/gcs.json
+
+          # Restart container to load plugin
+          docker restart $CONTAINER_ID
+
+      - name: Wait for Elasticsearch
+        run: |
+          timeout 60 bash -c 'until curl -s http://localhost:62223/_cat/health > /dev/null; do sleep 5; done'
+
+      - name: Register GCS Repository
+        run: |
+          curl -s -X PUT "http://localhost:62223/_snapshot/cofacts" -H 'Content-Type: application/json' -d '{
+            "type": "gcs",
+            "settings": {
+              "bucket": "rumors-db",
+              "readonly": true
+            }
+          }'
+
+      - name: Find Latest Snapshot
+        id: find-snapshot
+        run: |
+          SNAPSHOTS=$(curl -s "http://localhost:62223/_snapshot/cofacts/_all?verbose=true")
+          # Sort by start_time_in_millis and get the last one
+          LATEST_SNAPSHOT=$(echo "$SNAPSHOTS" | jq -r '.snapshots | sort_by(.start_time_in_millis) | last | .snapshot')
+          echo "Latest snapshot: $LATEST_SNAPSHOT"
+          echo "snapshot=$LATEST_SNAPSHOT" >> $GITHUB_OUTPUT
+
+      - name: Restore Snapshot
+        run: |
+          SNAPSHOT_NAME=${{ steps.find-snapshot.outputs.snapshot }}
+          if [ -z "$SNAPSHOT_NAME" ] || [ "$SNAPSHOT_NAME" == "null" ]; then
+            echo "Error: No snapshot found or failed to parse"
+            exit 1
+          fi
+          echo "Restoring $SNAPSHOT_NAME..."
+
+          # Delete all indices first
+          curl -s -X DELETE "http://localhost:62223/_all"
+
+          # Restore with wait_for_completion=true
+          curl -s -X POST "http://localhost:62223/_snapshot/cofacts/$SNAPSHOT_NAME/_restore?wait_for_completion=true" -H 'Content-Type: application/json' -d '{
+            "indices": "*,-urls*"
+          }'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Generate CSVs
+        run: npm start
+
+      - name: Upload Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: opendata-csvs
+          path: data/*.zip
