@@ -153,7 +153,7 @@ jobs:
           python-version: '3.12'
 
       - name: Install Hugging Face Hub CLI
-        run: pip install -U "huggingface_hub[cli]"
+        run: pip install "huggingface_hub[cli]<0.25.0"
 
       - name: Upload to Hugging Face
         run: >-
