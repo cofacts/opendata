@@ -1,7 +1,7 @@
 【Cofacts 真的假的】Open Datasets
 =====
 
-Latest dataset snapshot: <!-- SNAPSHOT_DATE -->2026-03-01<!-- /SNAPSHOT_DATE -->
+Latest dataset snapshot: <!-- SNAPSHOT_DATE -->2026-01-25<!-- /SNAPSHOT_DATE -->
 
 [![CI test](https://github.com/cofacts/opendata/actions/workflows/ci.yml/badge.svg)](https://github.com/cofacts/opendata/actions/workflows/ci.yml)
 
