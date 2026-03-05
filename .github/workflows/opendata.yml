@@ -147,17 +147,12 @@ jobs:
           name: opendata-csvs
           path: data
 
-      - name: Setup Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.12'
-
-      - name: Install Hugging Face Hub CLI
-        run: pip install "huggingface_hub[cli]<0.25.0"
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
 
       - name: Upload to Hugging Face
         run: >-
-          huggingface-cli upload Cofacts/line-msg-fact-check-tw ./data .
+          uvx --from huggingface_hub huggingface-cli upload Cofacts/line-msg-fact-check-tw ./data .
           --repo-type dataset
           --commit-message "${{ needs.generate-opendata.outputs.snapshot }} update"
           --token ${{ secrets.HF_TOKEN }}
