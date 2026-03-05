@@ -3,7 +3,7 @@ name: Generate Open Data
 on:
   workflow_dispatch:
   schedule:
-    - cron: '0 0 * * 1'
+    - cron: '24 16 * * 0'
 
 jobs:
   generate-opendata:
