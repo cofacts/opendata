@@ -2,10 +2,14 @@ name: Generate Open Data
 
 on:
   workflow_dispatch:
+  schedule:
+    - cron: '0 0 * * 1'
 
 jobs:
   generate-opendata:
     runs-on: ubuntu-latest
+    outputs:
+      snapshot: ${{ steps.find-snapshot.outputs.snapshot }}
     services:
       elasticsearch:
         image: docker.elastic.co/elasticsearch/elasticsearch-oss:6.3.2
@@ -114,3 +118,41 @@ jobs:
         with:
           name: opendata-csvs
           path: data/*.zip
+
+  update-readme:
+    needs: generate-opendata
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Update README.md
+        run: |
+          sed -i "s/<!-- SNAPSHOT_DATE -->.*<!-- \/SNAPSHOT_DATE -->/<!-- SNAPSHOT_DATE -->${{ needs.generate-opendata.outputs.snapshot }}<!-- \/SNAPSHOT_DATE -->/g" README.md
+
+      - name: Commit and push changes
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git diff --quiet || git commit -am "chore: update latest snapshot date to ${{ needs.generate-opendata.outputs.snapshot }}"
+          git push
+
+  upload-dataset:
+    needs: generate-opendata
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: opendata-csvs
+          path: data
+
+      - name: Install Hugging Face Hub CLI
+        run: pip install -U "huggingface_hub[cli]"
+
+      - name: Upload to Hugging Face
+        run: >-
+          huggingface-cli upload Cofacts/line-msg-fact-check-tw ./data .
+          --repo-type dataset
+          --commit-message "${{ needs.generate-opendata.outputs.snapshot }} update"
+          --token ${{ secrets.HF_TOKEN }}
