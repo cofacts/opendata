@@ -154,7 +154,7 @@ jobs:
 
       - name: Upload to Hugging Face
         run: >-
-          uvx --from "huggingface_hub[cli]<0.25.0" huggingface-cli upload Cofacts/line-msg-fact-check-tw ./data .
+          uvx --from huggingface_hub hf upload Cofacts/line-msg-fact-check-tw ./data .
           --repo-type dataset
           --commit-message "${{ needs.generate-opendata.outputs.snapshot }} update"
           --token ${{ secrets.HF_TOKEN }}
