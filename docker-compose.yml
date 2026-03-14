@@ -11,15 +11,16 @@ version: '2'
 
 services:
   elasticsearch:
-    image: docker.elastic.co/elasticsearch/elasticsearch-oss:6.3.2
+    image: docker.elastic.co/elasticsearch/elasticsearch:9.2.2
     volumes:
       - "./esdata:/usr/share/elasticsearch/data"
     environment:
       - "path.repo=/usr/share/elasticsearch/data"
+      - "discovery.type=single-node"
     ports:
       - "62223:9200"
 
   kibana:
-    image: docker.elastic.co/kibana/kibana-oss:6.3.2
+    image: docker.elastic.co/kibana/kibana:9.2.2
     ports:
       - "62224:5601"

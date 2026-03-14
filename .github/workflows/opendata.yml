@@ -12,7 +12,7 @@ jobs:
       snapshot: ${{ steps.find-snapshot.outputs.snapshot }}
     services:
       elasticsearch:
-        image: docker.elastic.co/elasticsearch/elasticsearch-oss:6.3.2
+        image: docker.elastic.co/elasticsearch/elasticsearch:9.2.2
         ports:
           - 62223:9200
         env:
@@ -29,7 +29,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '18'
+          node-version: '24'
           cache: 'npm'
 
       - name: Prepare directory and secrets
@@ -43,7 +43,7 @@ jobs:
       - name: Install GCS Plugin & Keystore
         run: |
           # Find the container ID
-          CONTAINER_ID=$(docker ps --filter "ancestor=docker.elastic.co/elasticsearch/elasticsearch-oss:6.3.2" --format "{{.ID}}")
+          CONTAINER_ID=$(docker ps --filter "ancestor=docker.elastic.co/elasticsearch/elasticsearch:9.2.2" --format "{{.ID}}")
           echo "Elasticsearch container ID: $CONTAINER_ID"
 
           if [ -z "$CONTAINER_ID" ]; then
