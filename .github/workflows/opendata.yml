@@ -12,11 +12,12 @@ jobs:
       snapshot: ${{ steps.find-snapshot.outputs.snapshot }}
     services:
       elasticsearch:
-        image: docker.elastic.co/elasticsearch/elasticsearch:9.2.2
+        image: elasticsearch:9.2.2
         ports:
           - 62223:9200
         env:
           discovery.type: single-node
+          xpack.security.enabled: 'false'
         options: >-
           --health-cmd "curl http://localhost:9200/_cat/health"
           --health-interval 10s
@@ -43,7 +44,7 @@ jobs:
       - name: Install GCS Plugin & Keystore
         run: |
           # Find the container ID
-          CONTAINER_ID=$(docker ps --filter "ancestor=docker.elastic.co/elasticsearch/elasticsearch:9.2.2" --format "{{.ID}}")
+          CONTAINER_ID=$(docker ps --filter "ancestor=elasticsearch:9.2.2" --format "{{.ID}}")
           echo "Elasticsearch container ID: $CONTAINER_ID"
 
           if [ -z "$CONTAINER_ID" ]; then
