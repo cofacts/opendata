@@ -41,7 +41,7 @@ jobs:
         env:
           GCS_CREDENTIALS: ${{ secrets.GCS_CREDENTIALS }}
 
-      - name: Install GCS Plugin & Keystore
+      - name: Configure GCS Keystore
         run: |
           # Find the container ID
           CONTAINER_ID=$(docker ps --filter "ancestor=elasticsearch:9.2.2" --format "{{.ID}}")
@@ -51,9 +51,6 @@ jobs:
             echo "Error: Elasticsearch container not found"
             exit 1
           fi
-
-          # Install plugin
-          docker exec $CONTAINER_ID bin/elasticsearch-plugin install -b repository-gcs
 
           # Add credentials to keystore
           # Copy credentials file into container
@@ -65,7 +62,7 @@ jobs:
           # Clean up credentials file inside container
           docker exec $CONTAINER_ID rm /usr/share/elasticsearch/config/gcs.json
 
-          # Restart container to load plugin
+          # Restart container to reload keystore
           docker restart $CONTAINER_ID
 
       - name: Wait for Elasticsearch
@@ -77,7 +74,8 @@ jobs:
           curl -s -X PUT "http://localhost:62223/_snapshot/cofacts" -H 'Content-Type: application/json' -d '{
             "type": "gcs",
             "settings": {
-              "bucket": "rumors-db",
+              "bucket": "cofacts-db-snapshots",
+              "base_path": "v9",
               "readonly": true
             }
           }'
