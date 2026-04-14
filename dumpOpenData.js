@@ -2,7 +2,7 @@ import fs from 'fs';
 import { pipeline } from 'stream/promises';
 import { Readable } from 'stream';
 import crypto from 'crypto';
-import elasticsearch from '@elastic/elasticsearch';
+import { Client } from '@elastic/elasticsearch';
 
 // eslint-import-resolve does not support `exports` in package.json.
 // eslint-disable-next-line import/no-unresolved
@@ -12,7 +12,7 @@ import JSZip from 'jszip';
 const ELASTICSEARCH_URL = 'http://localhost:62223';
 const OUTPUT_DIR = './data';
 
-const client = new elasticsearch.Client({
+const client = new Client({
   node: ELASTICSEARCH_URL,
 });
 
