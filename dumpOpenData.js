@@ -46,7 +46,7 @@ async function* scanIndex(index) {
 
   while (processedCount < totalCount) {
     const scrollResult = await client.scroll({
-      scrollId,
+      scroll_id: scrollId,
       scroll: '5m',
     });
     scrollId = scrollResult._scroll_id;

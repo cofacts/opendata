@@ -1,13 +1,13 @@
 import fs from 'fs';
 import crypto from 'crypto';
-import elasticsearch from '@elastic/elasticsearch';
-import csvStringify from 'csv-stringify';
+import { Client } from '@elastic/elasticsearch';
+import { stringify as csvStringify } from 'csv-stringify';
 import JSZip from 'jszip';
 
 const ELASTICSEARCH_URL = 'http://localhost:62223';
 const OUTPUT_DIR = './data';
 
-const client = new elasticsearch.Client({
+const client = new Client({
   node: ELASTICSEARCH_URL,
 });
 
@@ -55,7 +55,7 @@ async function scanIndex(index) {
 
   while (result.length < totalCount) {
     const scrollResult = await client.scroll({
-      scrollId,
+      scroll_id: scrollId,
       scroll: '5m',
     });
     scrollId = scrollResult._scroll_id;
