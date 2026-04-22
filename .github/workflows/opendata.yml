@@ -12,7 +12,7 @@ jobs:
       snapshot: ${{ steps.find-snapshot.outputs.snapshot }}
     services:
       elasticsearch:
-        image: elasticsearch:9.2.2
+        image: elasticsearch:9.3.2
         ports:
           - 62223:9200
         env:
@@ -44,7 +44,7 @@ jobs:
       - name: Configure GCS Keystore
         run: |
           # Find the container ID
-          CONTAINER_ID=$(docker ps --filter "ancestor=elasticsearch:9.2.2" --format "{{.ID}}")
+          CONTAINER_ID=$(docker ps --filter "ancestor=elasticsearch:9.3.2" --format "{{.ID}}")
           echo "Elasticsearch container ID: $CONTAINER_ID"
 
           if [ -z "$CONTAINER_ID" ]; then

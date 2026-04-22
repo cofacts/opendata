@@ -11,7 +11,7 @@ version: '2'
 
 services:
   elasticsearch:
-    image: elasticsearch:9.2.2
+    image: elasticsearch:9.3.2
     volumes:
       - "./esdata:/usr/share/elasticsearch/data"
     environment:
@@ -22,6 +22,6 @@ services:
       - "62223:9200"
 
   kibana:
-    image: kibana:9.2.2
+    image: kibana:9.3.2
     ports:
       - "62224:5601"
