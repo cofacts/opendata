@@ -26,13 +26,18 @@ function sha256(input) {
     : '';
 }
 
-async function* scanIndex(index) {
+async function* scanIndex(
+  index,
+  { size = 200, sourceIncludes = undefined, sort = undefined } = {}
+) {
   let processedCount = 0;
 
   let result = await client.search({
     index,
-    size: 200,
+    size,
     scroll: '5m',
+    _source_includes: sourceIncludes,
+    sort,
   });
 
   let scrollId = result._scroll_id;
@@ -455,5 +460,22 @@ pipeline(
   writeFile('article_reply_feedbacks.csv')
 );
 
-pipeline(scanIndex('analytics'), dumpAnalytics, writeFile('analytics.csv'));
+pipeline(
+  scanIndex('analytics', {
+    size: 5000,
+    sourceIncludes: [
+      'type',
+      'docId',
+      'date',
+      'stats.lineUser',
+      'stats.lineVisit',
+      'stats.webUser',
+      'stats.webVisit',
+      'stats.liff',
+    ],
+    sort: ['_doc'],
+  }),
+  dumpAnalytics,
+  writeFile('analytics.csv')
+);
 pipeline(scanIndex('users'), dumpUsers, writeFile('anonymized_users.csv'));
