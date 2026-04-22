@@ -29,34 +29,29 @@ function sha256(input) {
 async function* scanIndex(index) {
   let processedCount = 0;
 
-  let initialResult = await client.search({
+  let result = await client.search({
     index,
     size: 200,
     scroll: '5m',
-    track_total_hits: true,
   });
 
-  const totalCount = initialResult.hits.total.value;
-  let scrollId = initialResult._scroll_id;
+  let scrollId = result._scroll_id;
 
-  for (const hit of initialResult.hits.hits) {
-    processedCount += 1;
-    yield hit;
-  }
+  while (result.hits.hits.length > 0) {
+    for (const hit of result.hits.hits) {
+      processedCount += 1;
+      yield hit;
+    }
 
-  while (processedCount < totalCount) {
-    const scrollResult = await client.scroll({
+    if (processedCount % 10000 === 0) {
+      console.info(`${index}:\t${processedCount} processed`);
+    }
+
+    result = await client.scroll({
       scroll_id: scrollId,
       scroll: '5m',
     });
-    scrollId = scrollResult._scroll_id;
-    for (const hit of scrollResult.hits.hits) {
-      processedCount += 1;
-      yield hit;
-      if (processedCount % 100000 === 0) {
-        console.info(`${index}:\t${processedCount}/${totalCount}`);
-      }
-    }
+    scrollId = result._scroll_id;
   }
 }
 
