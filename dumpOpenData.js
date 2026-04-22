@@ -16,6 +16,17 @@ const client = new Client({
   node: ELASTICSEARCH_URL,
 });
 
+const ANALYTICS_SOURCE_INCLUDES = [
+  'type',
+  'docId',
+  'date',
+  'stats.lineUser',
+  'stats.lineVisit',
+  'stats.webUser',
+  'stats.webVisit',
+  'stats.liff',
+];
+
 /**
  * @param {string} input
  * @returns {string} - input's sha256 hash hex string. Empty string if input is falsy.
@@ -26,9 +37,46 @@ function sha256(input) {
     : '';
 }
 
+async function* mergeAsyncIterables(iterables) {
+  const entries = iterables.map((iterable) => {
+    const iterator = iterable[Symbol.asyncIterator]();
+    return {
+      iterator,
+      next: iterator.next().then((result) => ({ iterator, result })),
+    };
+  });
+
+  while (entries.length > 0) {
+    const { iterator, result } = await Promise.race(
+      entries.map((entry) => entry.next)
+    );
+    const entryIndex = entries.findIndex(
+      (entry) => entry.iterator === iterator
+    );
+
+    if (entryIndex === -1) continue;
+
+    if (result.done) {
+      entries.splice(entryIndex, 1);
+      continue;
+    }
+
+    entries[entryIndex].next = iterator
+      .next()
+      .then((nextResult) => ({ iterator, result: nextResult }));
+    yield result.value;
+  }
+}
+
 async function* scanIndex(
   index,
-  { size = 200, sourceIncludes = undefined, sort = undefined } = {}
+  {
+    size = 200,
+    sourceIncludes = undefined,
+    sort = undefined,
+    slice = undefined,
+    progressLabel = index,
+  } = {}
 ) {
   let processedCount = 0;
 
@@ -38,26 +86,51 @@ async function* scanIndex(
     scroll: '5m',
     _source_includes: sourceIncludes,
     sort,
+    slice,
   });
 
   let scrollId = result._scroll_id;
 
-  while (result.hits.hits.length > 0) {
-    for (const hit of result.hits.hits) {
-      processedCount += 1;
-      yield hit;
-    }
+  try {
+    while (result.hits.hits.length > 0) {
+      for (const hit of result.hits.hits) {
+        processedCount += 1;
+        yield hit;
+      }
 
-    if (processedCount % 10000 === 0) {
-      console.info(`${index}:\t${processedCount} processed`);
-    }
+      if (processedCount % 10000 === 0) {
+        console.info(`${progressLabel}:\t${processedCount} processed`);
+      }
 
-    result = await client.scroll({
-      scroll_id: scrollId,
-      scroll: '5m',
-    });
-    scrollId = result._scroll_id;
+      result = await client.scroll({
+        scroll_id: scrollId,
+        scroll: '5m',
+      });
+      scrollId = result._scroll_id;
+    }
+  } finally {
+    if (scrollId) {
+      try {
+        await client.clearScroll({
+          scroll_id: scrollId,
+        });
+      } catch (error) {
+        console.warn(`Failed to clear scroll for ${progressLabel}: ${error}`);
+      }
+    }
   }
+}
+
+function scanIndexInSlices(index, { slices, ...options }) {
+  return mergeAsyncIterables(
+    Array.from({ length: slices }, (_, sliceId) =>
+      scanIndex(index, {
+        ...options,
+        slice: { id: sliceId, max: slices },
+        progressLabel: `${index}[${sliceId + 1}/${slices}]`,
+      })
+    )
+  );
 }
 
 /**
@@ -461,18 +534,10 @@ pipeline(
 );
 
 pipeline(
-  scanIndex('analytics', {
+  scanIndexInSlices('analytics', {
+    slices: 8,
     size: 5000,
-    sourceIncludes: [
-      'type',
-      'docId',
-      'date',
-      'stats.lineUser',
-      'stats.lineVisit',
-      'stats.webUser',
-      'stats.webVisit',
-      'stats.liff',
-    ],
+    sourceIncludes: ANALYTICS_SOURCE_INCLUDES,
     sort: ['_doc'],
   }),
   dumpAnalytics,
