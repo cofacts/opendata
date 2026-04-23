@@ -145,12 +145,12 @@ async function* mergeAsyncGenerators(generators) {
       continue;
     }
 
-    yield winner.value;
-
     // Refill the winning slot with the next promise from the same iterator.
     promises[winner.idx] = generators[winner.idx]
       .next()
       .then((result) => ({ ...result, idx: winner.idx }));
+
+    yield winner.value;
   }
 }
 
