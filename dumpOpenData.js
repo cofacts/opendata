@@ -61,37 +61,6 @@ function csvStringifyRows(rows) {
   );
 }
 
-async function* mergeAsyncIterables(iterables) {
-  const entries = iterables.map((iterable) => {
-    const iterator = iterable[Symbol.asyncIterator]();
-    return {
-      iterator,
-      next: iterator.next().then((result) => ({ iterator, result })),
-    };
-  });
-
-  while (entries.length > 0) {
-    const { iterator, result } = await Promise.race(
-      entries.map((entry) => entry.next)
-    );
-    const entryIndex = entries.findIndex(
-      (entry) => entry.iterator === iterator
-    );
-
-    if (entryIndex === -1) continue;
-
-    if (result.done) {
-      entries.splice(entryIndex, 1);
-      continue;
-    }
-
-    entries[entryIndex].next = iterator
-      .next()
-      .then((nextResult) => ({ iterator, result: nextResult }));
-    yield result.value;
-  }
-}
-
 async function* scanIndex(
   index,
   {
@@ -145,8 +114,48 @@ async function* scanIndex(
   }
 }
 
+/**
+ * Merges multiple async generators into one, yielding values as they become available.
+ * It uses a "promise slot" pattern to maintain a constant number of concurrent
+ * requests while ensuring the first-come-first-served order.
+ *
+ * @param {AsyncGenerator[]} generators
+ */
+async function* mergeAsyncGenerators(generators) {
+  // A promise that never settles, used to occupy a slot of a finished iterator
+  // so that it never wins the Promise.race.
+  const NEVER_RESOLVE = new Promise(() => {});
+
+  // Initialize slots with the first promise from each iterator.
+  // We attach the index to the result so we know which slot to refill.
+  const promises = generators.map((iterator, idx) =>
+    iterator.next().then((result) => ({ ...result, idx }))
+  );
+
+  let finishedCount = 0;
+  while (finishedCount < generators.length) {
+    // Race all active slots. The first one to resolve wins.
+    const winner = await Promise.race(promises);
+
+    if (winner.done) {
+      // Slot finished. Replace it with NEVER_RESOLVE to keep the array length constant
+      // but effectively remove it from the race.
+      promises[winner.idx] = NEVER_RESOLVE;
+      finishedCount++;
+      continue;
+    }
+
+    yield winner.value;
+
+    // Refill the winning slot with the next promise from the same iterator.
+    promises[winner.idx] = generators[winner.idx]
+      .next()
+      .then((result) => ({ ...result, idx: winner.idx }));
+  }
+}
+
 function scanIndexInSlices(index, { slices, ...options }) {
-  return mergeAsyncIterables(
+  return mergeAsyncGenerators(
     Array.from({ length: slices }, (_, sliceId) =>
       scanIndex(index, {
         ...options,
