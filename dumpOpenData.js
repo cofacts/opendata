@@ -37,6 +37,30 @@ function sha256(input) {
     : '';
 }
 
+/**
+ * Normalize line breaks so bare carriage returns do not produce malformed CSV.
+ *
+ * @param {unknown} value
+ * @returns {unknown}
+ */
+function normalizeCsvValue(value) {
+  if (typeof value !== 'string') {
+    return value;
+  }
+
+  return value.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
+}
+
+/**
+ * @param {unknown[][]} rows
+ * @returns {string}
+ */
+function csvStringifyRows(rows) {
+  return csvStringify(
+    rows.map((row) => row.map((value) => normalizeCsvValue(value)))
+  );
+}
+
 async function* mergeAsyncIterables(iterables) {
   const entries = iterables.map((iterable) => {
     const iterator = iterable[Symbol.asyncIterator]();
@@ -138,7 +162,7 @@ function scanIndexInSlices(index, { slices, ...options }) {
  * @returns {Promise<string>} Generated CSV string
  */
 async function* dumpArticles(articles) {
-  yield csvStringify([
+  yield csvStringifyRows([
     [
       'id',
       'articleType',
@@ -154,7 +178,7 @@ async function* dumpArticles(articles) {
     ],
   ]);
   for await (const { _source, _id } of articles) {
-    yield csvStringify([
+    yield csvStringifyRows([
       [
         _id,
         _source.articleType,
@@ -177,11 +201,11 @@ async function* dumpArticles(articles) {
  * @returns {Promise<string>} Generated CSV string
  */
 async function* dumpArticleHyperlinks(articles) {
-  yield csvStringify([['articleId', 'url', 'normalizedUrl', 'title']]);
+  yield csvStringifyRows([['articleId', 'url', 'normalizedUrl', 'title']]);
 
   for await (const { _source, _id } of articles) {
     for (const hyperlink of _source.hyperlinks || []) {
-      yield csvStringify([
+      yield csvStringifyRows([
         [_id, hyperlink.url, hyperlink.normalizedUrl, hyperlink.title],
       ]);
     }
@@ -193,7 +217,7 @@ async function* dumpArticleHyperlinks(articles) {
  * @returns {Promise<string>} Generated CSV string
  */
 async function* dumpArticleCategories(articles) {
-  yield csvStringify([
+  yield csvStringifyRows([
     [
       'articleId',
       'categoryId',
@@ -211,7 +235,7 @@ async function* dumpArticleCategories(articles) {
 
   for await (const { _source, _id } of articles) {
     for (const ac of _source.articleCategories || []) {
-      yield csvStringify([
+      yield csvStringifyRows([
         [
           _id,
           ac.categoryId,
@@ -235,7 +259,7 @@ async function* dumpArticleCategories(articles) {
  * @returns {Promise<string>} Generated CSV string
  */
 async function* dumpArticleReplies(articles) {
-  yield csvStringify([
+  yield csvStringifyRows([
     [
       'articleId',
       'replyId',
@@ -252,7 +276,7 @@ async function* dumpArticleReplies(articles) {
 
   for await (const { _source, _id } of articles) {
     for (const ar of _source.articleReplies || []) {
-      yield csvStringify([
+      yield csvStringifyRows([
         [
           _id,
           ar.replyId,
@@ -275,12 +299,12 @@ async function* dumpArticleReplies(articles) {
  * @returns {Promise<string>} Generated CSV string
  */
 async function* dumpReplies(replies) {
-  yield csvStringify([
+  yield csvStringifyRows([
     ['id', 'type', 'reference', 'userIdsha256', 'appId', 'text', 'createdAt'],
   ]);
 
   for await (const { _source, _id } of replies) {
-    yield csvStringify([
+    yield csvStringifyRows([
       [
         _id,
         _source.type,
@@ -299,11 +323,11 @@ async function* dumpReplies(replies) {
  * @returns {Promise<string>} Generated CSV string
  */
 async function* dumpReplyHyperlinks(replies) {
-  yield csvStringify([['replyId', 'url', 'normalizedUrl', 'title']]);
+  yield csvStringifyRows([['replyId', 'url', 'normalizedUrl', 'title']]);
 
   for await (const { _source, _id } of replies) {
     for (const hyperlink of _source.hyperlinks || []) {
-      yield csvStringify([
+      yield csvStringifyRows([
         [_id, hyperlink.url, hyperlink.normalizedUrl, hyperlink.title],
       ]);
     }
@@ -315,12 +339,12 @@ async function* dumpReplyHyperlinks(replies) {
  * @returns {Promise<string>} Generated CSV string
  */
 async function* dumpCategories(categories) {
-  yield csvStringify([
+  yield csvStringifyRows([
     ['id', 'title', 'description', 'createdAt', 'updatedAt'],
   ]);
 
   for await (const { _id, _source } of categories) {
-    yield csvStringify([
+    yield csvStringifyRows([
       [
         _id,
         _source.title,
@@ -337,7 +361,7 @@ async function* dumpCategories(categories) {
  * @returns {Promise<string>} Generated CSV string
  */
 async function* dumpReplyRequests(replyRequests) {
-  yield csvStringify([
+  yield csvStringifyRows([
     [
       'articleId',
       'reason',
@@ -351,7 +375,7 @@ async function* dumpReplyRequests(replyRequests) {
   ]);
 
   for await (const { _source } of replyRequests) {
-    yield csvStringify([
+    yield csvStringifyRows([
       [
         _source.articleId,
         _source.reason,
@@ -377,7 +401,7 @@ async function* dumpReplyRequests(replyRequests) {
  * @returns {Promise<string>} Generated CSV string
  */
 async function* dumpArticleReplyFeedbacks(articleReplyFeedbacks) {
-  yield csvStringify([
+  yield csvStringifyRows([
     [
       'articleId',
       'replyId',
@@ -391,7 +415,7 @@ async function* dumpArticleReplyFeedbacks(articleReplyFeedbacks) {
   ]);
 
   for await (const { _source } of articleReplyFeedbacks) {
-    yield csvStringify([
+    yield csvStringifyRows([
       [
         _source.articleId,
         _source.replyId,
@@ -411,7 +435,7 @@ async function* dumpArticleReplyFeedbacks(articleReplyFeedbacks) {
  * @returns {Promise<string>} Generated CSV string
  */
 async function* dumpAnalytics(analytics) {
-  yield csvStringify([
+  yield csvStringifyRows([
     [
       'type',
       'docId',
@@ -426,7 +450,7 @@ async function* dumpAnalytics(analytics) {
   ]);
 
   for await (const { _source } of analytics) {
-    yield csvStringify([
+    yield csvStringifyRows([
       [
         _source.type,
         _source.docId,
@@ -447,12 +471,12 @@ async function* dumpAnalytics(analytics) {
  * @returns {Promise<string>} Generated CSV string
  */
 async function* dumpUsers(users) {
-  yield csvStringify([
+  yield csvStringifyRows([
     ['userIdsha256', 'appId', 'createdAt', 'lastActiveAt', 'blockedReason'],
   ]);
 
   for await (const { _id, _source } of users) {
-    yield csvStringify([
+    yield csvStringifyRows([
       [
         sha256(_id),
         _source.appId,
