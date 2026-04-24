@@ -12,11 +12,12 @@ jobs:
       snapshot: ${{ steps.find-snapshot.outputs.snapshot }}
     services:
       elasticsearch:
-        image: docker.elastic.co/elasticsearch/elasticsearch-oss:6.3.2
+        image: elasticsearch:9.3.2
         ports:
           - 62223:9200
         env:
           discovery.type: single-node
+          xpack.security.enabled: 'false'
         options: >-
           --health-cmd "curl http://localhost:9200/_cat/health"
           --health-interval 10s
@@ -29,7 +30,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '18'
+          node-version: '24'
           cache: 'npm'
 
       - name: Prepare directory and secrets
@@ -40,19 +41,16 @@ jobs:
         env:
           GCS_CREDENTIALS: ${{ secrets.GCS_CREDENTIALS }}
 
-      - name: Install GCS Plugin & Keystore
+      - name: Configure GCS Keystore
         run: |
           # Find the container ID
-          CONTAINER_ID=$(docker ps --filter "ancestor=docker.elastic.co/elasticsearch/elasticsearch-oss:6.3.2" --format "{{.ID}}")
+          CONTAINER_ID=$(docker ps --filter "ancestor=elasticsearch:9.3.2" --format "{{.ID}}")
           echo "Elasticsearch container ID: $CONTAINER_ID"
 
           if [ -z "$CONTAINER_ID" ]; then
             echo "Error: Elasticsearch container not found"
             exit 1
           fi
-
-          # Install plugin
-          docker exec $CONTAINER_ID bin/elasticsearch-plugin install -b repository-gcs
 
           # Add credentials to keystore
           # Copy credentials file into container
@@ -64,7 +62,7 @@ jobs:
           # Clean up credentials file inside container
           docker exec $CONTAINER_ID rm /usr/share/elasticsearch/config/gcs.json
 
-          # Restart container to load plugin
+          # Restart container to reload keystore
           docker restart $CONTAINER_ID
 
       - name: Wait for Elasticsearch
@@ -76,7 +74,8 @@ jobs:
           curl -s -X PUT "http://localhost:62223/_snapshot/cofacts" -H 'Content-Type: application/json' -d '{
             "type": "gcs",
             "settings": {
-              "bucket": "rumors-db",
+              "bucket": "cofacts-db-snapshots",
+              "base_path": "v9",
               "readonly": true
             }
           }'

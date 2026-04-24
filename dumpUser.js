@@ -1,13 +1,13 @@
 import fs from 'fs';
 import crypto from 'crypto';
-import elasticsearch from '@elastic/elasticsearch';
-import csvStringify from 'csv-stringify';
+import { Client } from '@elastic/elasticsearch';
+import { stringify as csvStringify } from 'csv-stringify';
 import JSZip from 'jszip';
 
 const ELASTICSEARCH_URL = 'http://localhost:62223';
 const OUTPUT_DIR = './data';
 
-const client = new elasticsearch.Client({
+const client = new Client({
   node: ELASTICSEARCH_URL,
 });
 
@@ -39,23 +39,26 @@ function sha256(input) {
 async function scanIndex(index) {
   let result = [];
 
-  const { body: initialResult } = await client.search({
+  const initialResult = await client.search({
     index,
     size: 200,
     scroll: '5m',
+    track_total_hits: true,
   });
 
-  const totalCount = initialResult.hits.total;
+  const totalCount = initialResult.hits.total.value;
+  let scrollId = initialResult._scroll_id;
 
   initialResult.hits.hits.forEach((hit) => {
     result.push(hit);
   });
 
   while (result.length < totalCount) {
-    const { body: scrollResult } = await client.scroll({
-      scrollId: initialResult._scroll_id,
+    const scrollResult = await client.scroll({
+      scroll_id: scrollId,
       scroll: '5m',
     });
+    scrollId = scrollResult._scroll_id;
     scrollResult.hits.hits.forEach((hit) => {
       result.push(hit);
     });

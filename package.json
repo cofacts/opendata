@@ -28,7 +28,7 @@
   "homepage": "https://github.com/cofacts/opendata#readme",
   "dependencies": {
     "csv-stringify": "^6.4.0",
-    "@elastic/elasticsearch": "^6.8.6",
+    "@elastic/elasticsearch": "^9.0.0",
     "jszip": "^3.1.5"
   },
   "devDependencies": {
@@ -39,6 +39,6 @@
     "prettier": "^3.0.0"
   },
   "engines": {
-    "node": ">=18"
+    "node": ">=24"
   }
 }
